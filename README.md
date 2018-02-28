@@ -7,12 +7,17 @@
 ### Install + Build
 Install [yarn](https://yarnpkg.com/lang/en/docs/install/)
 
-Install nodemon and server dependencies:
+Install [nodemon](https://github.com/remy/nodemon) globally
 ```
 npm i nodemon -g
+```
+Install server and client dependencies
+```
+yarn
+cd client
 yarn
 ```
-Run dev server:
+Run dev server and client at the same time:
 ```
 yarn dev
 ```
