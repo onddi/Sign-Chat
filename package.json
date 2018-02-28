@@ -1,5 +1,5 @@
 {
-  "name": "Sign Chat Server",
+  "name": "sign-chat-server",
   "version": "1.0.0",
   "scripts": {
     "client": "cd client && yarn start",
