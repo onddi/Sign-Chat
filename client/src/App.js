@@ -1,96 +1,22 @@
-import React, { Component } from 'react';
-import {createRoom, listenForMessages, newMessage, joinRoom, joinableRooms, leaveRoom} from './api/chat'
-import RoomsList from './components/RoomsList'
-import './styles/App.css';
+import React from 'react';
+import { BrowserRouter as Router, Route, Link } from 'react-router-dom'
+import Chat from './components/Chat'
+import SignView from './components/SignView'
 
-class App extends Component {
+const App = () => (
+  <Router>
+    <div className="App">
+      <ul>
+        <li><Link to="/">Home</Link></li>
+        <li><Link to="/sign">SignView</Link></li>
+      </ul>
 
-  constructor(props){
-    super(props)
+      <hr/>
 
-    this.state = {
-      messages: [],
-      rooms: [],
-      messageInput: '',
-      roomInput: '',
-      selectedRoom: '',
-      show: false
-    };
-
-    this.handleMessageInput = this.handleMessageInput.bind(this);
-    this.handleRoomInput = this.handleRoomInput.bind(this);
-    this.createRoom = this.createRoom.bind(this);
-    this.sendMessage = this.sendMessage.bind(this);
-    this.changeRoom = this.changeRoom.bind(this)
-  }
-
-  componentDidMount() {
-
-    joinableRooms(rooms => { this.setState({rooms}) })
-
-    listenForMessages(value => {
-      const {user, message, time} = value
-      console.log("ROOM msg", user, message, time)
-      this.setState({messages: this.state.messages.concat({user, message, time})})
-    })
-  }
-
-  handleMessageInput(event) {
-    this.setState({messageInput: event.target.value});
-  }
-
-  handleRoomInput(event) {
-    this.setState({roomInput: event.target.value});
-  }
-
-  createRoom() {
-    createRoom(this.state.roomInput)
-    this.setState({roomInput: ''});
-  }
-
-  sendMessage(){
-    newMessage({roomId: this.state.selectedRoom, message: this.state.messageInput})
-    this.setState({messageInput: ''})
-  }
-
-  changeRoom(roomId) {
-    const {selectedRoom} = this.state
-    console.log("Changing room form", selectedRoom, "to", roomId)
-    if(selectedRoom === roomId) return
-
-    leaveRoom(selectedRoom)
-    joinRoom(roomId)
-    this.setState({selectedRoom: roomId, messages: []})
-  }
-
-  render() {
-    const {messages, messageInput, roomInput, rooms, selectedRoom} = this.state
-    const messageList = messages.map((d, i) => <li key={i}>[{d.time}] {d.user.substring(0,5)}: {d.message}</li>);
-
-    return (
-      <div className="App">
-        <div className="RoomsList">
-          <input type="text" value={roomInput} onChange={this.handleRoomInput}/>
-          <button onClick={this.createRoom} >Create room</button>
-          <RoomsList rooms={rooms} changeRoom={this.changeRoom} currentRoom={selectedRoom}/>
-        </div>
-        {selectedRoom &&
-          <React.Fragment>
-            <div className="RoomHeader">
-              <h1>Current room: {selectedRoom}</h1>
-            </div>
-            <div className="RoomMessages">
-              <ul>{messageList}</ul>
-            </div>
-            <div className="MessageInputArea">
-              <input type="text" value={messageInput} onChange={this.handleMessageInput}/>
-              <button onClick={this.sendMessage} >Send</button>
-            </div>
-          </React.Fragment>
-        }
-      </div>
-    );
-  }
-}
+      <Route exact path="/" component={Chat}/>
+      <Route exact path="/sign" component={SignView}/>
+    </div>
+  </Router>
+)
 
 export default App;
