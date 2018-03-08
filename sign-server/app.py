@@ -1,4 +1,4 @@
-from classifier import getModel
+from classifier import getModel, trainModel
 from flask import Flask, render_template, jsonify, request, json
 from hand_data import get_hand_position
 from lib import Leap
@@ -45,11 +45,18 @@ def get_scores():
     scores.sort(key=lambda s: s['score'], reverse=True)
     return jsonify(scores=scores[:10])
 
-@app.route('/set_language', methods=['GET'])
-def set_language():
+@app.route('/set_model', methods=['GET'])
+def set_model():
     global currentModel
     currentModel = getModel('clf.pkl')
     return jsonify(currentModel='clf.pkl')
+
+@app.route('/train_model', methods=['GET'])
+def train_model():
+    global currentModel
+    currentModel = trainModel('clf.pkl')
+    return jsonify(currentModel='clf.pkl')
+
 
 @app.route('/current')
 def current_symbol():
@@ -65,6 +72,10 @@ def current_symbol():
     features = [v for k, v in hand_pos.iteritems()]
 
     #model = getModel('clf.pkl')
+
+    if currentModel == None:
+        global currentModel
+        currentModel = getModel('clf.pkl')
 
     if currentModel == 'ERROR':
         return jsonify(error='No model of that name')
