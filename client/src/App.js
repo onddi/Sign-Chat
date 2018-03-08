@@ -14,14 +14,17 @@ class App extends Component {
       messageInput: '',
       roomInput: '',
       selectedRoom: '',
-      show: false
+      show: false,
+      speech: true
     };
 
     this.handleMessageInput = this.handleMessageInput.bind(this);
     this.handleRoomInput = this.handleRoomInput.bind(this);
     this.createRoom = this.createRoom.bind(this);
     this.sendMessage = this.sendMessage.bind(this);
-    this.changeRoom = this.changeRoom.bind(this)
+    this.changeRoom = this.changeRoom.bind(this);
+    this.toggleSpeech = this.toggleSpeech.bind(this);
+    this.speak = this.speak.bind(this);
   }
 
   componentDidMount() {
@@ -32,6 +35,7 @@ class App extends Component {
       const {user, message, time} = value
       console.log("ROOM msg", user, message, time)
       this.setState({messages: this.state.messages.concat({user, message, time})})
+      this.speak(message);
     })
   }
 
@@ -51,6 +55,19 @@ class App extends Component {
   sendMessage(){
     newMessage({roomId: this.state.selectedRoom, message: this.state.messageInput})
     this.setState({messageInput: ''})
+  }
+
+  speak(mumble){
+    if(this.state.speech){
+      const synth = window.speechSynthesis;
+      const utterThis = new SpeechSynthesisUtterance(mumble)
+      synth.speak(utterThis);
+    }
+
+  }
+
+  toggleSpeech(){
+    this.setState({speech: !this.state.speech});
   }
 
   changeRoom(roomId) {
@@ -84,6 +101,9 @@ class App extends Component {
             </div>
             <div className="MessageInputArea">
               <input type="text" value={messageInput} onChange={this.handleMessageInput}/>
+              <button onClick={this.toggleSpeech} >
+                { this.state.speech ? 'Speech off': 'Speech on'}
+              </button>
               <button onClick={this.sendMessage} >Send</button>
             </div>
           </React.Fragment>
