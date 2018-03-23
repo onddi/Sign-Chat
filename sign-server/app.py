@@ -20,24 +20,29 @@ r = redis.StrictRedis(host='localhost', port=6379, db=0)
 
 currentModel = None
 
+
 @app.route('/translate')
 def translate():
     return render_template('ui.html')
+
 
 @app.route('/')
 def tutorial():
     return render_template('tutorial.html')
 
+
 @app.route('/score', methods=['POST'])
 def add_score():
     data = request.form
     try:
-        record = json.dumps({'user': data['user'], 'score': int(data['score'])})
+        record = json.dumps(
+            {'user': data['user'], 'score': int(data['score'])})
         print record
         result = r.lpush('scoreboard', record)
         return jsonify(error=result)
     except KeyError:
         return jsonify(error=True)
+
 
 @app.route('/scores', methods=['GET'])
 def get_scores():
@@ -45,24 +50,30 @@ def get_scores():
     scores.sort(key=lambda s: s['score'], reverse=True)
     return jsonify(scores=scores[:10])
 
+
 @app.route('/set_model', methods=['GET'])
 def set_model():
+    model_name = request.args.get('model')
     global currentModel
-    currentModel = getModel('clf.pkl')
-    return jsonify(currentModel='clf.pkl')
+    currentModel = getModel(model_name)
+    if(currentModel != 'ERROR'):
+        return jsonify(currentModel=model_name)
+    return jsonify(currentModel='ERROR')
+
 
 @app.route('/train_model', methods=['GET'])
 def train_model():
+    model_name = request.args.get('model')
     global currentModel
-    currentModel = trainModel('clf.pkl')
-    return jsonify(currentModel='clf.pkl')
+    currentModel = trainModel(model_name)
+    return jsonify(currentModel=model_name)
 
 
 @app.route('/current')
 def current_symbol():
     global past_symbol
     global prev_prediction
-
+    global currentModel
     # Is there a hand?
     hand_pos = get_hand_position(controller)
     if not hand_pos:
@@ -71,11 +82,9 @@ def current_symbol():
         return jsonify(symbol=' ', new=new)
     features = [v for k, v in hand_pos.iteritems()]
 
-    #model = getModel('clf.pkl')
-
     if currentModel == None:
-        global currentModel
-        currentModel = getModel('clf.pkl')
+        #print("current NONE")
+        currentModel = getModel('clf')
 
     if currentModel == 'ERROR':
         return jsonify(error='No model of that name')
@@ -83,7 +92,7 @@ def current_symbol():
     # Do we have a new symbol?
     prediction = ''.join(currentModel.predict(features))
     print("Predicted hand symbol", prediction)
-    print("Probability", currentModel.predict_proba(features))
+    #print("Probability", currentModel.predict_proba(features))
     if prediction == prev_prediction:
         # We good fam
         print(prediction)
@@ -91,6 +100,7 @@ def current_symbol():
     else:
         prev_prediction = prediction
         return jsonify(new=True, symbol=prediction)
+
 
 @app.route('/splash')
 def splash():
@@ -100,6 +110,7 @@ def splash():
 @app.route('/scoreboard')
 def scoreboard():
     return jsonify(user_score=100)
+
 
 if __name__ == '__main__':
     app.run(debug=True)
