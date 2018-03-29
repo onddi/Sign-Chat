@@ -2,6 +2,23 @@ import React, {Component} from 'react';
 import axios from 'axios'
 import Leap from 'leapjs'
 import _ from 'lodash'
+import {newMessage} from '../api/chat'
+
+const commands = {
+  'a': 'What is the weather like in Helsinki',
+  'b': 'Are you a computer',
+  'c': 'Where is Aalto university'
+}
+
+const words = {
+  'a': 'What',
+  'b': 'is',
+  'c': 'the',
+  'd': 'weather',
+  'e': 'like',
+  'f': 'in',
+  'g': 'Helsinki'
+}
 
 class SignView extends Component {
 
@@ -18,6 +35,9 @@ class SignView extends Component {
     this.interpretSign = this.interpretSign.bind(this)
     this.toggleMode = this.toggleMode.bind(this)
     this.getSign = this.getSign.bind(this)
+
+    this.mockSign = this.mockSign.bind(this)
+    this.sendMessage = this.sendMessage.bind(this)
   }
 
   componentWillUnmount(){
@@ -60,6 +80,27 @@ class SignView extends Component {
     }
   }
 
+  mockSign(key) {
+    const {currentSymbol, currentMessage} = this.state
+    const chosenCommand = _.sample(commands)
+    const chosenWord = _.sample(words)
+
+    this.setState({
+      currentSymbol: chosenCommand,
+      currentMessage: currentMessage.concat(chosenWord)
+    })
+
+    this.sendMessage(chosenCommand)
+
+    //if(currentMessage.length > 6) this.sendMessage(_.map(words).join(' '))
+  }
+
+  sendMessage(msg) {
+    const firstRoom = _.head(this.props.rooms)
+    const message = `Alexa, ${msg}?`
+    newMessage({roomId: firstRoom, message})
+  }
+
   render() {
     const {signs, mode, currentMessage, currentSymbol} = this.state
     const signList = signs.map((s, i) => <span key={i}>{s}</span>)
@@ -73,6 +114,7 @@ class SignView extends Component {
         <div style={{width: '100%'}}>{currentMessageList}</div>
         <div>{currentSymbol}</div>
         <button onClick={this.toggleMode}>{mode ? 'Stop' : 'Start'}</button>
+        <button onClick={() => this.mockSign()}>Wut</button>
       </React.Fragment>
     )
   }
