@@ -2,6 +2,7 @@ from classifier import getModel, trainModel
 from flask import Flask, render_template, jsonify, request, json
 from hand_data import get_hand_position
 from lib import Leap
+from db import get_all_models
 import pickle
 import random
 import redis
@@ -68,6 +69,15 @@ def train_model():
     currentModel = trainModel(model_name)
     return jsonify(currentModel=model_name)
 
+@app.route('/models', methods=['GET'])
+def get_models():
+    models = []
+    rows = get_all_models().fetchall()
+    for r in rows:
+        models.append(str(r))
+        print(r)
+    print(models)
+    return jsonify(models=models)
 
 @app.route('/current')
 def current_symbol():

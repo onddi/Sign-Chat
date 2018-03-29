@@ -5,7 +5,7 @@ import random
 NUM_FEATURES = 60
 
 def get_engine_and_table():
-    engine = create_engine('sqlite:///asl_data.db', echo=True)
+    engine = create_engine('sqlite:///asl_data.db?check_same_thread=False', echo=True)
 
     metadata = MetaData()
     columns = [Column('feat' + str(i), Numeric) for i in range(NUM_FEATURES)]
@@ -14,7 +14,9 @@ def get_engine_and_table():
     tagged_data = Table('tagged_data', metadata, *columns)
 
     metadata.create_all(engine)
-
+    print("************")
+    print("INIT DB CONNECTION")
+    print("************")
     return engine, tagged_data
 
 engine, tagged_data = get_engine_and_table()
@@ -38,6 +40,11 @@ def add_data(model_name, sign, **features):
 def get_all_data():
     sel = select([tagged_data])
     return conn.execute(sel)
+
+def get_all_models():
+    sel = select([tagged_data.c.model]).group_by(tagged_data.c.model)
+    return conn.execute(sel)
+
 
 def get_model_data(model_name):
     model = column('model')
