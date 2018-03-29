@@ -6,6 +6,8 @@ const port = process.env.PORT || 5000;
 const server = app.listen(port, () => console.log(`Listening on port ${port}`));
 const io = require('socket.io')(server);
 
+const s_actions = require('./socket-actions')
+
 app.use(cors())
 
 //REST API//
@@ -16,30 +18,17 @@ app.get('/api/hello', (req, res) => {
 
 //Socket IO//
 
-getRooms = (io) => {
-  const {rooms} = io.sockets.adapter
-  return Object.keys(rooms).filter(room => !rooms[room].sockets.hasOwnProperty(room))
-}
-
 io.on('connection', function(socket) {
   //Emit the joinable rooms to the socket
   console.log(socket.id, "connected!")
-  socket.emit('joinable rooms', getRooms(io))
-
-  socket.on('join room', roomId => { socket.join(roomId) })
-  socket.on('leave room', roomId => { socket.leave(roomId) })
-
-  socket.on('create room', roomId => {
-    socket.join(roomId)
-    io.emit('joinable rooms', getRooms(io))
-  })
-
-  socket.on('new message', ({roomId, message}) => {
-    const date = new Date(Date.now())
-    const addZeros = (unit) => ('0' + unit).slice(-2) //otherwise time could be 12:8:56 (-> 12:08:56)
-    const time = `${addZeros(date.getHours())}:${addZeros(date.getMinutes())}:${addZeros(date.getSeconds())}`
-    io.in(roomId).emit('message', {user: socket.id, message, time}); // emit to all including the sender
-    //socket.broadcast.to(roomId).emit('message', {user: socket.id, message, time}); // broadcast to all cept the sender
-  })
+  socket.emit('joinable rooms', s_actions.getRooms(io))
+  socket.on('join room', roomId => { s_actions.joinRoom(socket, roomId)})
+  socket.on('leave room', roomId => { s_actions.leaveRoom(io, socket, roomId) })
+  socket.on('create room', roomId => { s_actions.createRoom(io, socket, roomId) })
+  socket.on('new message', ({roomId, message}) => { s_actions.sendMessage(io, socket, roomId, message) })
+  socket.on('disconnect', function () {
+    console.log(socket.id, "disconnected!")
+    //io.emit('user disconnected');
+  });
 
 })

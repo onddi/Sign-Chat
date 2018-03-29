@@ -3,18 +3,30 @@ import { BrowserRouter as Router, Route, Link } from 'react-router-dom'
 import Chat from './components/Chat'
 import SignView from './components/SignView'
 
-const App = () => (
+import {joinableRooms} from './api/chat'
+import {listRooms} from './megablob/actions'
+
+const rooms = () => {
+  console.log("calling rooms")
+  joinableRooms(rooms => {
+    listRooms(rooms)
+  })
+}
+
+const App = (props) => (
   <Router>
     <div className="App">
+      {props.testState}
+      {rooms()}
       <ul>
-        <li><Link to="/">Home</Link></li>
+        <li><Link to="/">Chat</Link></li>
         <li><Link to="/sign">SignView</Link></li>
       </ul>
 
       <hr/>
 
-      <Route exact path="/" component={Chat}/>
-      <Route exact path="/sign" component={SignView}/>
+      <Route exact path="/" render={() => ( <Chat rooms={props.rooms}/> )} />
+      <Route exact path="/sign" render={() => ( <SignView rooms={props.rooms}/> )}/>
     </div>
   </Router>
 )

@@ -3,11 +3,6 @@ import axios from 'axios'
 import Leap from 'leapjs'
 import _ from 'lodash'
 
-/*import '../lib/three.min'
-import '../lib/leap-0.6.4'
-import '../lib/leap-plugins-0.1.12.min'
-import '../lib/leap.rigged-hand-0.1.7.min'*/
-
 class SignView extends Component {
 
   constructor(props){
@@ -25,12 +20,16 @@ class SignView extends Component {
     this.getSign = this.getSign.bind(this)
   }
 
+  componentWillUnmount(){
+    clearInterval(this.interval)
+  }
+
   interpretSign({symbol}){
     const {signs, currentMessage} = this.state
-    const numOfSigns = 10
+    const numOfSigns = 5
 
     const reduced = _.reduce(_.takeRight(signs, numOfSigns), (result, value, key) => result === value ? result : '') //Sign shoud be showed numOfSigns times
-    const newSign = reduced != _.last(currentMessage)
+    const newSign = reduced !== _.last(currentMessage)
 
     this.setState({
       signs: signs.concat(symbol),
@@ -55,7 +54,7 @@ class SignView extends Component {
   getSign() {
     console.log(this.state.mode)
     if(this.state.mode){
-      this.interval = window.setInterval(() => this.pollSign(), 50);
+      this.interval = window.setInterval(() => this.pollSign(), 100);
     } else {
       clearInterval(this.interval)
     }
@@ -70,6 +69,7 @@ class SignView extends Component {
     return (
       <React.Fragment>
         <h1>SignView</h1>
+        {this.props.rooms && this.props.rooms.map((s, i) => <a key={i}>{s}</a>)}
         <div style={{width: '100%'}}>{currentMessageList}</div>
         <div>{currentSymbol}</div>
         <button onClick={this.toggleMode}>{mode ? 'Stop' : 'Start'}</button>
