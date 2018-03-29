@@ -1,13 +1,14 @@
-import asl
+from asl import get_data
 
 from sklearn.cross_validation import train_test_split
 from sklearn.grid_search import GridSearchCV
 from sklearn.metrics import classification_report
 from sklearn.svm import SVC
+data, target = get_data()
 
-n_samples = len(asl.data)
-X = asl.data
-y = asl.target
+n_samples = len(data)
+X = data
+y = target
 
 X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.5,
         random_state=0)
