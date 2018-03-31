@@ -4,20 +4,17 @@ import Leap from 'leapjs'
 import _ from 'lodash'
 import {newMessage} from '../api/chat'
 
+import Select from 'react-select';
+import 'react-select/dist/react-select.css';
+
 const commands = {
   'a': 'What is the weather like in Helsinki',
   'b': 'Are you a computer',
   'c': 'Where is Aalto university'
 }
 
-const words = {
-  'a': 'What',
-  'b': 'is',
-  'c': 'the',
-  'd': 'weather',
-  'e': 'like',
-  'f': 'in',
-  'g': 'Helsinki'
+const ACTIONS = {
+  SEND: 'empty'
 }
 
 class SignView extends Component {
@@ -29,50 +26,123 @@ class SignView extends Component {
       signs: [],
       mode: false,
       currentMessage: [],
-      currentSymbol: ''
+      currentSymbol: '',
+      selectedOption: {value: 'Alexa', label: 'Alexa'}
     }
 
-    this.interpretSign = this.interpretSign.bind(this)
-    this.toggleMode = this.toggleMode.bind(this)
-    this.getSign = this.getSign.bind(this)
+    _.bindAll(this,
+      'interpretSign',
+      'toggleMode',
+      'getSign',
+      'mockSign',
+      'sendMessage',
+      'handleRoomChange',
+      'handleKeyDown',
+      'messageEvent',
+      'addSignToMessage',
+      'updateSymbolStrength'
+    )
+  }
 
-    this.mockSign = this.mockSign.bind(this)
-    this.sendMessage = this.sendMessage.bind(this)
+  componentWillMount() {
+    document.addEventListener("keydown", this.handleKeyDown, false);
   }
 
   componentWillUnmount(){
     clearInterval(this.interval)
+    document.removeEventListener("keydown", this.handleKeyDown, false);
   }
 
-  interpretSign({symbol}){
-    const {signs, currentMessage} = this.state
-    const numOfSigns = 5
+  handleKeyDown(event) {
+    if(event.keyCode === 32) { this.toggleMode() }
+  }
 
-    const reduced = _.reduce(_.takeRight(signs, numOfSigns), (result, value, key) => result === value ? result : '') //Sign shoud be showed numOfSigns times
-    const newSign = reduced !== _.last(currentMessage)
+  areArrayLastXElemsOfStr(arr, num, str) {
+    const lastXOfArr = _.takeRight(arr, num)
+    const howManyAreSame = _.groupBy(lastXOfArr)[_.last(lastXOfArr)].length
+    return _.isEqual(_.last(lastXOfArr), str) && _.isEqual(howManyAreSame, num)
+  }
+
+  areArrayLastXElemsSame(arr, num){
+    const sameSymbolsInTheEnd = _.groupBy(arr)[_.last(arr)]
+    const amountOfSameSymbols = sameSymbolsInTheEnd.length
+    return _.isEqual(amountOfSameSymbols, num)
+  }
+
+  messageEvent() {
+    const {currentMessage} = this.state
+    const phrase = _.join(_.filter(currentMessage, c => c !== " "), " ")
+
+    if(phrase.length > 0) {
+      this.sendMessage(phrase)
+
+      this.setState({
+        signs: [],
+        currentMessage: []
+      })
+    }
+  }
+
+  addSignToMessage(symbol) {
+    const {currentMessage, signs} = this.state
+
+    const newSign = symbol !== _.last(currentMessage)
+    const messages = newSign ? currentMessage.concat(symbol) : currentMessage
+    const cleanSends = _.filter(messages, c => c !== ACTIONS.SEND)
 
     this.setState({
-      signs: signs.concat(symbol),
-      currentMessage: newSign ? currentMessage.concat(reduced) : currentMessage,
-      currentSymbol: symbol
+      currentMessage: cleanSends,
+      currentSymbol: symbol,
+      currentSymbolStrength: 1
     })
   }
 
+  updateSymbolStrength(symbols, symbol, threshold) {
+    const {currentMessage, signs} = this.state
+    const howManySameSymbolsInTheEnd = _.groupBy(symbols)[symbol].length
+
+    this.setState({
+      signs: signs.concat(symbol),
+      currentSymbol: symbol,
+      currentSymbolStrength: howManySameSymbolsInTheEnd / threshold
+    })
+  }
+
+  interpretSign(data){
+    const {symbol} = data
+
+    const updatedStreamOfSigns = this.state.signs.concat(symbol)
+    const signThresholdNum = 5
+    const lastXOfStream = _.takeRight(updatedStreamOfSigns, signThresholdNum)
+
+    const thresholdConfirmed = this.areArrayLastXElemsSame(lastXOfStream, signThresholdNum)
+    const shouldSend = _.isEqual(symbol, ACTIONS.SEND)
+
+    if(thresholdConfirmed && shouldSend) {
+      this.messageEvent()
+    } else if(thresholdConfirmed) {
+      this.addSignToMessage(symbol)
+    } else {
+      this.updateSymbolStrength(lastXOfStream, symbol, signThresholdNum)
+    }
+
+    //const lastXSameSigns = _.reduce(lastXSigns, (result, value) => result === value ? result : ' ') //Sign shoud be showed numOfSigns times
+
+  }
+
   toggleMode(){
-    console.log(this.state.mode)
     this.setState({mode: !this.state.mode}, () => this.getSign())
   }
 
   pollSign() {
     return axios.get('http://127.0.0.1:5000/current')
       .then(({data}) => {
-        console.log(data)
+        console.log(data.symbol)
         this.interpretSign(data)
       })
   }
 
   getSign() {
-    console.log(this.state.mode)
     if(this.state.mode){
       this.interval = window.setInterval(() => this.pollSign(), 100);
     } else {
@@ -83,38 +153,66 @@ class SignView extends Component {
   mockSign(key) {
     const {currentSymbol, currentMessage} = this.state
     const chosenCommand = _.sample(commands)
-    const chosenWord = _.sample(words)
 
     this.setState({
-      currentSymbol: chosenCommand,
-      currentMessage: currentMessage.concat(chosenWord)
+      currentSymbol: chosenCommand
     })
 
     this.sendMessage(chosenCommand)
-
-    //if(currentMessage.length > 6) this.sendMessage(_.map(words).join(' '))
   }
 
   sendMessage(msg) {
-    const firstRoom = _.head(this.props.rooms)
-    const message = `Alexa, ${msg}?`
-    newMessage({roomId: firstRoom, message})
+    const {selectedOption} = this.state
+    const {label} = selectedOption
+
+    const message = `${label}, ${msg}?`
+    newMessage({roomId: label, message})
+  }
+
+  handleRoomChange = (selectedOption) => {
+    this.setState({ selectedOption });
+    console.log(`Selected: ${selectedOption.label}`);
   }
 
   render() {
-    const {signs, mode, currentMessage, currentSymbol} = this.state
-    const signList = signs.map((s, i) => <span key={i}>{s}</span>)
-    const currentMessageList = currentMessage.map((s,i) => <span key={i}>{s}</span>)
-    //<div style={{width: '100%'}}>{signList}</div>
+    const {mode, currentMessage, currentSymbol, currentSymbolStrength, messageToBeSent} = this.state
+    const currentMessageList = currentMessage.map((s,i) => <div key={i}><span>{s}</span></div>)
+
+    const { selectedOption } = this.state;
+    const value = selectedOption && selectedOption.value;
+
+    const rooms = this.props.rooms && this.props.rooms.map((s, i) => ({value: s, label: s}))
+
+    const radius = _.isUndefined(currentSymbolStrength) ? 0 : currentSymbolStrength
+
+    const phrase = _.join(_.filter(currentMessage, c => c !== " "), " ")
+
+    const inputStyle = {
+      width: '900px',
+      height: '50px',
+      fontSize: '1.5rem'
+    }
 
     return (
       <React.Fragment>
         <h1>SignView</h1>
-        {this.props.rooms && this.props.rooms.map((s, i) => <a key={i}>{s}</a>)}
-        <div style={{width: '100%'}}>{currentMessageList}</div>
-        <div>{currentSymbol}</div>
-        <button onClick={this.toggleMode}>{mode ? 'Stop' : 'Start'}</button>
-        <button onClick={() => this.mockSign()}>Wut</button>
+        <div>
+          <h2>Send to room</h2>
+          <Select
+            name="form-field-name"
+            value={value}
+            onChange={this.handleRoomChange}
+            options={rooms}
+          />
+        </div>
+        <div>
+          <h2>Current symbol</h2><button onClick={this.toggleMode}>{mode ? 'Stop' : 'Start'}</button>
+          <span style={{opacity: radius}}>{currentSymbol}</span>
+        </div>
+        <div style={{width: '100%'}}>
+          <h2>Message to be sent</h2>
+          <input style={inputStyle} value={phrase} />
+        </div>
       </React.Fragment>
     )
   }

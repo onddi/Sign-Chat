@@ -14,13 +14,6 @@ class RoomsList extends Component {
     this.createRoom = this.createRoom.bind(this);
   }
 
-  componentDidMount() {
-    joinableRooms(rooms => {
-      console.log("These rooms can be joined")
-      listRooms(rooms)
-    })
-  }
-
   handleRoomInput(event) {
     this.setState({roomInput: event.target.value});
   }
