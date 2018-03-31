@@ -9,7 +9,7 @@ import {listRooms} from './megablob/actions'
 const rooms = () => {
   console.log("calling rooms")
   joinableRooms(rooms => {
-    listRooms(rooms)
+    listRooms(['Alexa'].concat(rooms))
   })
 }
 

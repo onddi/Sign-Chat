@@ -16,6 +16,10 @@ class Chat extends Component {
     this.changeRoom = this.changeRoom.bind(this);
   }
 
+  componentDidMount(){
+    this.changeRoom('Alexa')
+  }
+
   changeRoom(roomId) {
     const {selectedRoom} = this.state
     console.log("Changing room form", selectedRoom, "to", roomId)
