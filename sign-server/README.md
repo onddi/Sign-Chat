@@ -1,3 +1,20 @@
+# Training model
+
+## Käynnistäessä python.py
+Muista /set_model?model='modelin nimi'
+
+## New models
+python trainer.py -> Luo mallit kantaan
+
+## Treenaa kannasta model
+/train_model?model=alexa
+
+## Käytä modelia
+/set_model?model=alexa
+
+## Listaa modelit
+/models
+
 # ASL Tutor
 
 <img alt="ASL Tutor logo" width="400px" src="http://i.imgur.com/ZPg5guN.png">
