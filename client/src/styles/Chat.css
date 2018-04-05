@@ -63,17 +63,17 @@
   justify-self: start;
 }
 
-.MessageInputArea > input {
+/* .MessageInputArea > input {
   width: 200px;
   height: 50px;
   font-size: 1.5rem;
-}
+} */
 
-.MessageInputArea > button {
+/* .MessageInputArea > button {
   height: 56px;
   vertical-align: top;
   font-size: 1.1rem;
-}
+} */
 
 .SignMessage {
   grid-column: 2 / 2;

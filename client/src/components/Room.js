@@ -1,9 +1,9 @@
 import React, { Component } from 'react';
-import {createRoom, listenForMessages, newMessage, joinRoom, joinableRooms, leaveRoom} from '../api/chat'
+import { createRoom, listenForMessages, newMessage, joinRoom, joinableRooms, leaveRoom } from '../api/chat'
 
 class Room extends Component {
 
-  constructor(props){
+  constructor(props) {
     super(props)
 
     this.state = {
@@ -21,17 +21,17 @@ class Room extends Component {
 
   componentDidMount() {
     listenForMessages(value => {
-      const {user, message, time} = value
+      const { user, message, time } = value
       console.log("COMING FROM ROOM", this.props.selectedRoom)
       console.log("ROOM msg", user, message, time)
-      this.setState({messages: this.state.messages.concat({user, message, time})})
+      this.setState({ messages: this.state.messages.concat({ user, message, time }) })
       this.speak(message);
     })
   }
 
-  componentWillReceiveProps(nextProps){
-    if(this.props.selectedRoom !== nextProps.selectedRoom) {
-      this.setState({messages: []})
+  componentWillReceiveProps(nextProps) {
+    if (this.props.selectedRoom !== nextProps.selectedRoom) {
+      this.setState({ messages: [] })
     }
   }
 
@@ -39,35 +39,35 @@ class Room extends Component {
     console.log("Component unmounted")
   }
 
-  speak(mumble){
-    if(this.state.speech){
+  speak(mumble) {
+    if (this.state.speech) {
       const synth = window.speechSynthesis;
       const utterThis = new SpeechSynthesisUtterance(mumble)
       synth.speak(utterThis);
     }
   }
 
-  toggleSpeech(){
-    this.setState({speech: !this.state.speech});
+  toggleSpeech() {
+    this.setState({ speech: !this.state.speech });
   }
 
   componentDidUpdate() {
     const elem = document.getElementById('messages');
-    if(elem) elem.scrollIntoView(false)
+    if (elem) elem.scrollIntoView(false)
   }
 
   handleMessageInput(event) {
-    this.setState({messageInput: event.target.value});
+    this.setState({ messageInput: event.target.value });
   }
 
-  sendMessage(){
-    newMessage({roomId: this.props.selectedRoom, message: this.state.messageInput})
-    this.setState({messageInput: ''})
+  sendMessage() {
+    newMessage({ roomId: this.props.selectedRoom, message: this.state.messageInput })
+    this.setState({ messageInput: '' })
   }
 
   render() {
-    const {messages, messageInput} = this.state
-    const messageList = messages.map((d, i) => <li key={i}>[{d.time}] {d.user.substring(0,5)}: {d.message}</li>);
+    const { messages, messageInput } = this.state
+    const messageList = messages.map((d, i) => <li key={i}>[{d.time}] {d.user.substring(0, 5)}: {d.message}</li>);
 
     return (
       <React.Fragment>
@@ -77,12 +77,13 @@ class Room extends Component {
         <div className="RoomMessages">
           <ul id="messages">{messageList}</ul>
         </div>
-        <div className="MessageInputArea">
-          <input type="text" value={messageInput} onChange={this.handleMessageInput}/>
-          <button onClick={this.sendMessage} >Send</button>
-          <button onClick={this.toggleSpeech} >
-            { this.state.speech ? 'Speech off': 'Speech on'}
-          </button>
+
+        <div className="input-group MessageInputArea">
+          <input type="text" className="form-control" value={messageInput} onChange={this.handleMessageInput} aria-describedby="basic-addon2" />
+          <div className="input-group-append">
+            <button className="btn btn-outline-primary" onClick={this.sendMessage} type="button">Send</button>
+            <button className="btn btn-outline-secondary" onClick={this.toggleSpeech} type="button">{this.state.speech ? 'Speech off' : 'Speech on'}</button>
+          </div>
         </div>
       </React.Fragment>
     );

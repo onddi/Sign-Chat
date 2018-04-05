@@ -20,7 +20,7 @@ const transitionStyles = {
 
 
 const Fade = ({ in: inProp, exited, entered, text }) => (
-  <Transition in={inProp} timeout={{enter: 100, exit: 300}} onExited={exited} onEntered={entered} appear={true}>
+  <Transition in={inProp} timeout={{ enter: 100, exit: 300 }} onExited={exited} onEntered={entered} appear={true}>
     {(state) => (
       <div style={{
         ...defaultStyle,
@@ -34,7 +34,7 @@ const Fade = ({ in: inProp, exited, entered, text }) => (
 
 class Message extends Component {
 
-  constructor(props){
+  constructor(props) {
     super(props)
 
     this.state = {
@@ -49,7 +49,7 @@ class Message extends Component {
   }
 
   componentDidMount() {
-    const {messages} = this.state
+    const { messages } = this.state
     const currentMessage = messages[messages.length - 1]
 
     this.setState({
@@ -58,27 +58,27 @@ class Message extends Component {
     })
   }
 
-  componentWillUpdate(nextProps, nextState){
-    const {messages, show} = this.state
-    if(messages.length === 0 && show === false && nextState.messages.length > 0) {
+  componentWillUpdate(nextProps, nextState) {
+    const { messages, show } = this.state
+    if (messages.length === 0 && show === false && nextState.messages.length > 0) {
       console.log("Run exited with", nextState.messages)
       this.exited(nextState.messages)
     }
   }
 
   addMessage() {
-    const elems = ['Hei','Oletko','Kesäinen','Ilta', 'Minä','En','Tosissani','Turhaan']
+    const elems = ['Hei', 'Oletko', 'Kesäinen', 'Ilta', 'Minä', 'En', 'Tosissani', 'Turhaan']
     const newElem = elems[Math.floor(Math.random() * elems.length)]
     console.log("Messages now", this.state.messages)
-    this.setState({messages: this.state.messages.concat(newElem)})
+    this.setState({ messages: this.state.messages.concat(newElem) })
   }
 
   entered() {
-    setTimeout(() => this.setState({show:false}), 2000)
+    setTimeout(() => this.setState({ show: false }), 2000)
   }
 
   exited(messages) {
-    if(messages.length < 1) return
+    if (messages.length < 1) return
     const currentMessage = messages[messages.length - 1]
 
     setTimeout(() => {
@@ -91,13 +91,13 @@ class Message extends Component {
   }
 
   render() {
-    const {show, currentMessage, messages} = this.state
+    const { show, currentMessage, messages } = this.state
 
-    return(
+    return (
       <React.Fragment>
         <Fade in={!!show} exited={() => this.exited(messages)} entered={this.entered} text={currentMessage} />
         <br />
-        <button onClick={this.addMessage}>Add message</button>
+        <button className='btn' onClick={this.addMessage}>Add message</button>
       </React.Fragment>
     )
   }
