@@ -35,10 +35,10 @@ class RoomsList extends Component {
             <button onClick={this.createRoom} class="btn btn-outline-secondary" type="button">Create room</button>
           </div>
         </div>
-        <h1>Rooms</h1>
-        <ul className="rooms">
+        <h3>Rooms</h3>
+        <ul className="rooms list-group">
           {rooms && rooms.map((c, i) => <li key={i}
-            className={selectedRoom === c ? 'selected-room' : ''}
+            className={selectedRoom === c ? 'list-group-item selected-room' : 'list-group-item'}
             onClick={() => changeRoom(c)}>
             {c}
           </li>)}
