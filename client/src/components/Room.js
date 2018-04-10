@@ -9,7 +9,7 @@ class Room extends Component {
     this.state = {
       messages: [],
       messageInput: '',
-      speech: true
+      speech: false
     };
 
     this.handleMessageInput = this.handleMessageInput.bind(this);

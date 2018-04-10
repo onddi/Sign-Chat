@@ -187,16 +187,13 @@ class SignView extends Component {
   }
 
   render() {
-    const { mode, currentMessage, currentSymbol, currentSymbolStrength, messageToBeSent } = this.state
-    const currentMessageList = currentMessage.map((s, i) => <div key={i}><span>{s}</span></div>)
+    const {mode, currentMessage, currentSymbol, currentSymbolStrength, messageToBeSent, selectedOption} = this.state
 
-    const { selectedOption } = this.state;
+    const rooms = this.props.rooms && this.props.rooms.map((s, i) => ({value: s, label: s}))
+    const currentMessageList = currentMessage.map((s,i) => <div key={i}><span>{s}</span></div>)
+
     const value = selectedOption && selectedOption.value;
-
-    const rooms = this.props.rooms && this.props.rooms.map((s, i) => ({ value: s, label: s }))
-
-    const radius = _.isUndefined(currentSymbolStrength) ? 0 : currentSymbolStrength
-
+    const symbolStrength = _.isUndefined(currentSymbolStrength) ? 0 : currentSymbolStrength
     const phrase = _.join(_.filter(currentMessage, c => c !== " "), " ")
 
     const inputStyle = {
@@ -224,7 +221,7 @@ class SignView extends Component {
             <br />
             <div>
               <h2>Current symbol</h2><button className="btn btn-outline-primary" onClick={this.toggleMode}>{mode ? 'Stop' : 'Start'}</button>
-              <span style={{ opacity: radius }}>{currentSymbol}</span>
+              <span style={{ opacity: symbolStrength }}>{currentSymbol}</span>
             </div>
             <div style={{ width: '100%' }}>
               <h2>Message to be sent</h2>
