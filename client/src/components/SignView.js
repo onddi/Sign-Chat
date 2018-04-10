@@ -27,7 +27,9 @@ class SignView extends Component {
       mode: false,
       currentMessage: [],
       currentSymbol: '',
-      selectedOption: { value: 'Alexa', label: 'Alexa' }
+      selectedRoomOption: { value: 'Alexa', label: 'Alexa' },
+      selectedModelOption: { value: 'alexa', label: 'alexa'},
+      modelNames: []
     }
 
     _.bindAll(this,
@@ -41,8 +43,21 @@ class SignView extends Component {
       'messageEvent',
       'addSignToMessage',
       'updateSymbolStrength',
-      'deleteMessage'
+      'deleteMessage',
+      'handleModelChange'
     )
+  }
+
+  componentDidMount() {
+    axios.get('http://127.0.0.1:5000/models')
+      .then(({ data }) => {
+        const {models} = data
+        const modelNames = models.map(s => {
+          const m = _.split(s, "'")[1]
+          return {value: m, label: m}
+        })
+        this.setState({modelNames})
+      })
   }
 
   componentWillMount() {
@@ -174,27 +189,43 @@ class SignView extends Component {
   }
 
   sendMessage(msg) {
-    const { selectedOption } = this.state
-    const { label } = selectedOption
+    const { selectedRoomOption } = this.state
+    const { label } = selectedRoomOption
 
     const message = `${label}, ${msg}?`
     newMessage({ roomId: label, message })
   }
 
-  handleRoomChange = (selectedOption) => {
-    this.setState({ selectedOption });
-    console.log(`Selected: ${selectedOption.label}`);
+  handleRoomChange = (selectedRoomOption) => {
+    this.setState({ selectedRoomOption });
+    console.log(`Selected: ${selectedRoomOption.label}`);
+  }
+
+  handleModelChange = (selectedModelOption) => {
+    axios.get(`http://127.0.0.1:5000/set_model?model=${selectedModelOption.value}`)
+    this.setState({ selectedModelOption })
   }
 
   render() {
-    const {mode, currentMessage, currentSymbol, currentSymbolStrength, messageToBeSent, selectedOption} = this.state
+    const {
+      mode,
+      currentMessage,
+      currentSymbol,
+      currentSymbolStrength,
+      messageToBeSent,
+      selectedRoomOption,
+      selectedModelOption,
+      modelNames
+    } = this.state
 
     const rooms = this.props.rooms && this.props.rooms.map((s, i) => ({value: s, label: s}))
     const currentMessageList = currentMessage.map((s,i) => <div key={i}><span>{s}</span></div>)
 
-    const value = selectedOption && selectedOption.value;
+    const value = selectedRoomOption && selectedRoomOption.value;
     const symbolStrength = _.isUndefined(currentSymbolStrength) ? 0 : currentSymbolStrength
     const phrase = _.join(_.filter(currentMessage, c => c !== " "), " ")
+
+    const modelValue = selectedModelOption && selectedModelOption.value
 
     const inputStyle = {
       width: '100%',
@@ -207,9 +238,24 @@ class SignView extends Component {
         <div className="row justify-content-md-center">
           <div className="col-md-6">
             <h1>SignView</h1>
-            <div>
 
-              <p>Send to room</p>
+            <br />
+
+            <div>
+              <h4>What model to use</h4>
+              <Select
+                className=""
+                name="form-field-name"
+                value={modelValue}
+                onChange={this.handleModelChange}
+                options={modelNames}
+              />
+            </div>
+
+            <br />
+
+            <div>
+              <h4>Send to room</h4>
               <Select
                 className=""
                 name="form-field-name"
