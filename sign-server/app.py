@@ -25,6 +25,11 @@ r = redis.StrictRedis(host='localhost', port=6379, db=0)
 
 currentModel = None
 
+ACTION_TRAINING_START = "training_start"
+ACTION_TRAINING_INPROGRESS = "training_inprogress"
+ACTION_TRAINING_DONE = "training_done"
+ACTION_TRAINING_ERROR = "training_error"
+
 
 @app.route('/translate')
 def translate():
@@ -144,7 +149,7 @@ def test_connect():
 def handle_my_custom_event(data):
     sign = data['sign']
     model = data['model']
-    emit_message("Started reading")
+    emit(ACTION_TRAINING_START, "Place your hand on the leap motion")
     train_char(model, sign)
 
 
@@ -158,18 +163,14 @@ def train_char(model_name, training_word):
         time.sleep(SAMPLE_DELAY)
         sample = get_hand_position(controller, True)
         while len(sample) != NUM_FEATURES:
-            emit_message("Please place only right hand in view")
+            emit(ACTION_TRAINING_ERROR, "Please place only right hand in view")
             # print "Please place only right hand in view"
             sample = get_hand_position(controller, True)
         print sample
         if t % 10 == 0:
-            emit_message("Looking good")
+            emit(ACTION_TRAINING_INPROGRESS, str(t) + "/" + str(NUM_SAMPLES))
         add_data(model_name=model_name, sign=training_word, **sample)
-    emit_message("Done training")
-
-
-def emit_message(message):
-    emit('sign_event', message)
+    emit(ACTION_TRAINING_DONE, "donezki")
 
 
 import os.path
