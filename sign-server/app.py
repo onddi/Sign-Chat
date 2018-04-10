@@ -1,4 +1,4 @@
-from classifier import getModel, trainModel
+from classifier import getModel, trainModel, get_path
 from flask import Flask, render_template, jsonify, request, json
 from hand_data import get_hand_position
 from lib import Leap
@@ -141,6 +141,7 @@ def handle_my_custom_event(data):
     emit_message("Started reading")
     train_char(model, sign)
 
+
 NUM_SAMPLES = 100
 SAMPLE_DELAY = .1
 NUM_FEATURES = 60
@@ -164,7 +165,23 @@ def train_char(model_name, training_word):
 def emit_message(message):
     emit('sign_event', message)
 
+import os.path
+
+
+def init_models():
+    models = get_all_models()
+    for model in models:
+        create_if_not_exists(model['model'])
+
+
+def create_if_not_exists(model_name):
+    file_name = get_path(model_name)
+    print(file_name)
+    if not os.path.isfile(file_name):
+        trainModel(model_name)
+
 
 if __name__ == '__main__':
+    init_models()
     socketio.run(app)
     # app.run(debug=True)
