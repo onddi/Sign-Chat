@@ -45,8 +45,7 @@ def get_all_models():
     sel = select([tagged_data.c.model]).group_by(tagged_data.c.model)
     return conn.execute(sel)
 
-def get_model_signs
-(model_name):
+def get_model_signs(model_name):
     model = column('model')
     sel = select([tagged_data.c.sign]).where(model == model_name).group_by(tagged_data.c.sign)
     return conn.execute(sel)
