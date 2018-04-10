@@ -40,7 +40,8 @@ class SignView extends Component {
       'handleKeyDown',
       'messageEvent',
       'addSignToMessage',
-      'updateSymbolStrength'
+      'updateSymbolStrength',
+      'deleteMessage'
     )
   }
 
@@ -108,8 +109,16 @@ class SignView extends Component {
     })
   }
 
-  interpretSign(data) {
-    const { symbol } = data
+  deleteMessage(symbol){
+    this.setState({
+      signs: [],
+      currentMessage: [],
+      currentSymbol: symbol
+    })
+  }
+
+  interpretSign(data){
+    const {symbol} = data
 
     const updatedStreamOfSigns = this.state.signs.concat(symbol)
     const signThresholdNum = 5
@@ -117,10 +126,13 @@ class SignView extends Component {
 
     const thresholdConfirmed = this.areArrayLastXElemsSame(lastXOfStream, signThresholdNum)
     const shouldSend = _.isEqual(symbol, ACTIONS.SEND)
+    const shouldBackspace = _.isEqual(symbol, 'no')
 
     if (thresholdConfirmed && shouldSend) {
       this.messageEvent()
-    } else if (thresholdConfirmed) {
+    } else if(thresholdConfirmed && shouldBackspace){
+      this.deleteMessage(symbol)
+    } else if(thresholdConfirmed) {
       this.addSignToMessage(symbol)
     } else {
       this.updateSymbolStrength(lastXOfStream, symbol, signThresholdNum)
