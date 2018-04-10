@@ -2,7 +2,7 @@ from classifier import getModel, trainModel, get_path
 from flask import Flask, render_template, jsonify, request, json
 from hand_data import get_hand_position
 from lib import Leap
-from db import get_all_models
+from db import get_all_models, get_model_signs
 import pickle
 import random
 import redis
@@ -85,6 +85,12 @@ def get_models():
     return jsonify(models=models)
 
 
+@app.route('/models/<model_name>', methods=['GET'])
+def get_signs(model_name):
+    signs = get_model_signs(model_name)
+    return json.dumps([dict(r) for r in signs])
+
+
 @app.route('/current')
 def current_symbol():
     global past_symbol
@@ -164,6 +170,7 @@ def train_char(model_name, training_word):
 
 def emit_message(message):
     emit('sign_event', message)
+
 
 import os.path
 
