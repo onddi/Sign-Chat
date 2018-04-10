@@ -43,6 +43,7 @@ class Room extends Component {
     if (this.state.speech) {
       const synth = window.speechSynthesis;
       const utterThis = new SpeechSynthesisUtterance(mumble)
+      utterThis.lang = 'en-US';
       synth.speak(utterThis);
     }
   }
