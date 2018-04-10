@@ -6,6 +6,7 @@ Usage:
 '''
 from sklearn import svm
 from sklearn.externals import joblib
+from sklearn.naive_bayes import BernoulliNB
 
 def get_path(model_name):
     return 'sign-models/' + model_name + '.pkl'
@@ -19,7 +20,8 @@ def getModel(model_name):
 def trainModel(model_name):
     from asl import get_data
     data, target = get_data(model_name)
-    clf = svm.SVC(gamma=0.0001, C=50, probability=True)
+    #clf = svm.SVC(gamma=0.0001, C=50, probability=True)
+    clf = BernoulliNB()
     clf.fit(data, target)
     print("Creating model "+ model_name +" based on current database content")
     joblib.dump(clf, get_path(model_name))
