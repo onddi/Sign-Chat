@@ -65,24 +65,17 @@
   padding-right: 10px;
 }
 
-/* .MessageInputArea > input {
-  width: 200px;
-  height: 50px;
-  font-size: 1.5rem;
-} */
-
-/* .MessageInputArea > button {
-  height: 56px;
-  vertical-align: top;
-  font-size: 1.1rem;
-} */
-
 .SignMessage {
   grid-column: 2 / 2;
   grid-row: 2;
   grid-area: sign;
   align-self: start;
   justify-self: stretch;
+}
+
+.speechRecognition {
+  grid-column: 2/2;
+  text-align: left;
 }
 
 .rooms > li {
