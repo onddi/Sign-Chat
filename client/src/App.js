@@ -3,8 +3,8 @@ import { BrowserRouter as Router, Route, Link } from 'react-router-dom'
 import Chat from './components/Chat'
 import SignView from './components/SignView'
 
-import {joinableRooms} from './api/chat'
-import {listRooms} from './megablob/actions'
+import { joinableRooms } from './api/chat'
+import { listRooms } from './megablob/actions'
 
 const rooms = () => {
   console.log("calling rooms")
@@ -18,15 +18,15 @@ const App = (props) => (
     <div className="App">
       {props.testState}
       {rooms()}
-      <ul>
-        <li><Link to="/">Chat</Link></li>
-        <li><Link to="/sign">SignView</Link></li>
+      <ul className="nav nav-pills">
+        <li className="nav-item"><Link className="nav-link" to="/">Chat</Link></li>
+        <li className="nav-item"><Link className="nav-link" to="/sign">SignView</Link></li>
       </ul>
 
-      <hr/>
+      <hr />
 
-      <Route exact path="/" render={() => ( <Chat rooms={props.rooms}/> )} />
-      <Route exact path="/sign" render={() => ( <SignView rooms={props.rooms}/> )}/>
+      <Route exact path="/" render={() => (<Chat rooms={props.rooms} />)} />
+      <Route exact path="/sign" render={() => (<SignView rooms={props.rooms} />)} />
     </div>
   </Router>
 )
