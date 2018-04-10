@@ -7,9 +7,13 @@ import pickle
 import random
 import redis
 from flask_cors import CORS
+from flask_socketio import SocketIO, send, emit
+import time
+from db import add_data
 
 app = Flask(__name__)
 CORS(app)
+socketio = SocketIO(app)
 
 controller = Leap.Controller()
 controller.set_policy(Leap.Controller.POLICY_BACKGROUND_FRAMES)
@@ -69,6 +73,7 @@ def train_model():
     currentModel = trainModel(model_name)
     return jsonify(currentModel=model_name)
 
+
 @app.route('/models', methods=['GET'])
 def get_models():
     models = []
@@ -78,6 +83,7 @@ def get_models():
         print(r)
     print(models)
     return jsonify(models=models)
+
 
 @app.route('/current')
 def current_symbol():
@@ -122,5 +128,43 @@ def scoreboard():
     return jsonify(user_score=100)
 
 
+@socketio.on('connect')
+def test_connect():
+    print("CONNECTED")
+    emit('sign_event', {'data': 'Connected'})
+
+
+@socketio.on('train_sign')
+def handle_my_custom_event(data):
+    sign = data['sign']
+    model = data['model']
+    emit_message("Started reading")
+    train_char(model, sign)
+
+NUM_SAMPLES = 100
+SAMPLE_DELAY = .1
+NUM_FEATURES = 60
+
+
+def train_char(model_name, training_word):
+    for t in range(NUM_SAMPLES):
+        time.sleep(SAMPLE_DELAY)
+        sample = get_hand_position(controller, True)
+        while len(sample) != NUM_FEATURES:
+            emit_message("Please place only right hand in view")
+            # print "Please place only right hand in view"
+            sample = get_hand_position(controller, True)
+        print sample
+        if t % 10 == 0:
+            emit_message("Looking good")
+        add_data(model_name=model_name, sign=training_word, **sample)
+    emit_message("Done training")
+
+
+def emit_message(message):
+    emit('sign_event', message)
+
+
 if __name__ == '__main__':
-    app.run(debug=True)
+    socketio.run(app)
+    # app.run(debug=True)
