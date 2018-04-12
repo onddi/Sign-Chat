@@ -1,5 +1,5 @@
 from sqlalchemy import create_engine, MetaData, Table, Column, Numeric, String
-from sqlalchemy.sql import select, column
+from sqlalchemy.sql import select, column, and_
 import random
 
 NUM_FEATURES = 60
@@ -50,6 +50,11 @@ def get_model_signs(model_name):
     sel = select([tagged_data.c.sign]).where(model == model_name).group_by(tagged_data.c.sign)
     return conn.execute(sel)
 
+def delete_sign(model_name, sign_name):
+    model = column('model')
+    sign = column('sign')
+    dele = tagged_data.delete().where(and_(model==model_name, sign==sign_name))
+    conn.execute(dele)
 
 def get_model_data(model_name):
     model = column('model')

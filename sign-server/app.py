@@ -2,7 +2,7 @@ from classifier import getModel, trainModel, get_path
 from flask import Flask, render_template, jsonify, request, json
 from hand_data import get_hand_position
 from lib import Leap
-from db import get_all_models, get_model_signs
+from db import get_all_models, get_model_signs, delete_sign
 import pickle
 import random
 import redis
@@ -100,6 +100,14 @@ def get_models():
         print(r)
     print(models)
     return jsonify(models=models)
+
+# delete/model=alexas&sign=somethin
+@app.route('/delete', methods=['GET'])
+def remove_sign():
+    model = request.args.get('model')
+    sign = request.args.get('sign')
+    delete_sign(model, sign)
+    return jsonify(ok="ok")
 
 
 @app.route('/models/<model_name>', methods=['GET'])
