@@ -8,7 +8,6 @@ const defaultStyle = {
   opacity: 0,
   padding: 20,
   display: 'inline-block',
-  //backgroundColor: '#8787d8',
   fontSize: '5em'
 }
 
@@ -16,8 +15,6 @@ const transitionStyles = {
   entering: { opacity: 0 },
   entered: { opacity: 1 },
 };
-
-
 
 const Fade = ({ in: inProp, exited, entered, text }) => (
   <Transition in={inProp} timeout={{ enter: 100, exit: 300 }} onExited={exited} onEntered={entered} appear={true}>
