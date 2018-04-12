@@ -1,6 +1,7 @@
 import React, { Component } from 'react';
 import { createRoom, listenForMessages, newMessage, joinRoom, joinableRooms, leaveRoom } from '../api/chat'
-import SpeechRecognition from 'react-speech-recognition'
+
+const SpeechRecognition = window.webkitSpeechRecognition;
 
 
 class Room extends Component {
@@ -11,15 +12,14 @@ class Room extends Component {
     this.state = {
       messages: [],
       messageInput: '',
-      speech: false
+      speech: false,
+      transcript: ''
     };
 
     this.handleMessageInput = this.handleMessageInput.bind(this);
     this.sendMessage = this.sendMessage.bind(this);
     this.toggleSpeech = this.toggleSpeech.bind(this);
     this.speak = this.speak.bind(this);
-    // this.afterSpeak = this.afterSpeak.bind(this);
-
   }
 
   componentDidMount() {
@@ -43,8 +43,14 @@ class Room extends Component {
   }
 
   afterSpeak() {
-    this.props.recognition.lang = 'en-US';
-    this.props.startListening()
+    var recognition = new SpeechRecognition();
+    recognition.lang = 'en-US';
+    recognition.start()
+
+    recognition.onresult = (event) => {
+      console.log(event.results[0][0].transcript)
+      this.setState({ transcript: event.results[0][0].transcript })
+    }
   }
 
   speak(mumble) {
@@ -78,7 +84,6 @@ class Room extends Component {
   render() {
     const { messages, messageInput } = this.state
     const messageList = messages.map((d, i) => <li key={i}>[{d.time}] {d.user.substring(0, 5)}: {d.message}</li>);
-    const { transcript, listening, browserSupportsSpeechRecognition } = this.props;
 
     return (
       <React.Fragment>
@@ -97,8 +102,7 @@ class Room extends Component {
           </div>
         </div>
         <div className="speechRecognition" style={{ display: this.state.speech ? 'block' : 'none' }}>
-          <p>{'Listening: ' + listening}</p>
-          <p>{'Transcript: ' + transcript}</p>
+          <p>{'Transcript: ' + this.state.transcript}</p>
         </div>
       </React.Fragment>
     );
@@ -109,4 +113,4 @@ const options = {
   autoStart: false
 }
 
-export default SpeechRecognition(options)(Room);
+export default Room;
