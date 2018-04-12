@@ -17,6 +17,10 @@ socketio = SocketIO(app)
 
 controller = Leap.Controller()
 controller.set_policy(Leap.Controller.POLICY_BACKGROUND_FRAMES)
+controller.enable_gesture(Leap.Gesture.TYPE_CIRCLE)
+controller.enable_gesture(Leap.Gesture.TYPE_SWIPE)
+controller.enable_gesture(Leap.Gesture.TYPE_KEY_TAP)
+controller.enable_gesture(Leap.Gesture.TYPE_SCREEN_TAP)
 
 past_symbol = 'a'
 prev_prediction = None
@@ -35,8 +39,6 @@ ACTION_TRAINING_DONE = "training_done"
 ACTION_TRAINING_ERROR = "training_error"
 
 ACTION_GESTURE = "gesture"
-ACTION_GESTURE_LEFT = "gesture_left"
-ACTION_GESTURE_LEFT = "gesture_right"
 
 ACTION_SIGN = "sign_prediction"
 
@@ -107,14 +109,14 @@ def get_signs(model_name):
 
 
 @socketio.on('start_sign_reading')
-def start_sign_reading(data):
+def start_sign_reading():
     global read_sign
     read_sign = True
     read_leap()
 
 
 @socketio.on('stop_sign_reading')
-def stop_sign_reading(data):
+def stop_sign_reading():
     global read_sign
     read_sign = False
 
@@ -122,14 +124,29 @@ def stop_sign_reading(data):
 def read_leap():
     global read_sign
     while read_sign or read_gestures:
-        sign = current_symbol()
-        emit(ACTION_SIGN, sign)
-        time.sleep(10)
+        sign, gesture = current_symbol()
+        if gesture:
+            print(gesture)
+            socketio.emit(ACTION_GESTURE, gesture)
+        if sign:
+            print(sign)
+            socketio.emit(ACTION_SIGN, sign)
+        time.sleep(.1)
 
+
+@app.route('/start')
+def s():
+    start_sign_reading()
+    return jsonify(ok="ok")
+
+@app.route('/stop')
+def st():
+    stop_sign_reading()
+    return jsonify(ok="ok")
 
 @app.route('/current')
 def get_current():
-    sign = current_symbol()
+    sign, gesture = current_symbol()
     return jsonify(new=False, symbol=sign)
 
 
@@ -138,11 +155,11 @@ def current_symbol():
     global prev_prediction
     global currentModel
     # Is there a hand?
-    hand_pos = get_hand_position(controller)
+    hand_pos, gesture = get_hand_position(controller)
     if not hand_pos:
         new = past_symbol != ' '
         past_symbol = ' '
-        return None
+        return None, gesture
     features = [v for k, v in hand_pos.iteritems()]
 
     if currentModel == None:
@@ -150,13 +167,14 @@ def current_symbol():
         currentModel = getModel('clf')
 
     if currentModel == 'ERROR':
-        return None
+        return None, gesture
 
     # Do we have a new symbol?
     prediction = ''.join(currentModel.predict(features))
     print("Predicted hand symbol", prediction)
     #print("Probability", currentModel.predict_proba(features))
-    return prediction
+    return prediction, gesture
+
 
 @app.route('/splash')
 def splash():
@@ -220,5 +238,5 @@ def create_if_not_exists(model_name):
 
 if __name__ == '__main__':
     init_models()
-    socketio.run(app)
+    socketio.run(app,debug=True)
     # app.run(debug=True)

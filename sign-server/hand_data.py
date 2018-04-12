@@ -3,6 +3,11 @@ import collections
 from lib import Leap
 from lib.Leap import Bone
 
+
+ACTION_GESTURE_LEFT = "swipe_left"
+ACTION_GESTURE_RIGHT = "swipe_right"
+ACTION_GESTURE_CIRCLE = "circle"
+
 '''
 gets the current frame from controller
 for each finger, stores the topmost end of each bone (4 points)
@@ -12,8 +17,11 @@ returns the adjusted bone locations in the form:
 '''
 def get_hand_position(controller, blocking=False):
     frame = controller.frame()
+
+    detected_gesture = get_current_gesture(frame)
+
     if not blocking and len(frame.fingers) == 0:
-        return None
+        return None, None
 
     while len(frame.fingers) == 0:
         frame = controller.frame()
@@ -38,7 +46,21 @@ def get_hand_position(controller, blocking=False):
         for j in range(3):
             calibrated_finger_bones["feat" + str(i*3+j)] = normalized_joint[j]
 
-    return calibrated_finger_bones
+    return calibrated_finger_bones, detected_gesture
+
+def get_current_gesture(frame):
+    for gesture in frame.gestures():
+        if gesture:
+            print(gesture.type)
+            if gesture.type is Leap.Gesture.TYPE_CIRCLE:
+                return ACTION_GESTURE_CIRCLE
+            if gesture.type is Leap.Gesture.TYPE_SWIPE:
+                swipe = Leap.SwipeGesture(gesture)
+                if (swipe.direction.x > 0):
+                    return ACTION_GESTURE_RIGHT
+                return ACTION_GESTURE_LEFT
+
+    return None
 
 
 if __name__ == "__main__":
