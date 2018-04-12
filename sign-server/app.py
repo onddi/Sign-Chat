@@ -25,10 +25,20 @@ r = redis.StrictRedis(host='localhost', port=6379, db=0)
 
 currentModel = None
 
+read_sign = False
+read_gestures = False
+
+
 ACTION_TRAINING_START = "training_start"
 ACTION_TRAINING_INPROGRESS = "training_inprogress"
 ACTION_TRAINING_DONE = "training_done"
 ACTION_TRAINING_ERROR = "training_error"
+
+ACTION_GESTURE = "gesture"
+ACTION_GESTURE_LEFT = "gesture_left"
+ACTION_GESTURE_LEFT = "gesture_right"
+
+ACTION_SIGN = "sign_prediction"
 
 
 @app.route('/translate')
@@ -96,7 +106,33 @@ def get_signs(model_name):
     return json.dumps([dict(r) for r in signs])
 
 
+@socketio.on('start_sign_reading')
+def start_sign_reading(data):
+    global read_sign
+    read_sign = True
+    read_leap()
+
+
+@socketio.on('stop_sign_reading')
+def stop_sign_reading(data):
+    global read_sign
+    read_sign = False
+
+
+def read_leap():
+    global read_sign
+    while read_sign or read_gestures:
+        sign = current_symbol()
+        emit(ACTION_SIGN, sign)
+        time.sleep(10)
+
+
 @app.route('/current')
+def get_current():
+    sign = current_symbol()
+    return jsonify(new=False, symbol=sign)
+
+
 def current_symbol():
     global past_symbol
     global prev_prediction
@@ -106,7 +142,7 @@ def current_symbol():
     if not hand_pos:
         new = past_symbol != ' '
         past_symbol = ' '
-        return jsonify(symbol=' ', new=new)
+        return None
     features = [v for k, v in hand_pos.iteritems()]
 
     if currentModel == None:
@@ -114,20 +150,13 @@ def current_symbol():
         currentModel = getModel('clf')
 
     if currentModel == 'ERROR':
-        return jsonify(error='No model of that name')
+        return None
 
     # Do we have a new symbol?
     prediction = ''.join(currentModel.predict(features))
     print("Predicted hand symbol", prediction)
     #print("Probability", currentModel.predict_proba(features))
-    if prediction == prev_prediction:
-        # We good fam
-        print(prediction)
-        return jsonify(new=False, symbol=prediction)
-    else:
-        prev_prediction = prediction
-        return jsonify(new=True, symbol=prediction)
-
+    return prediction
 
 @app.route('/splash')
 def splash():
