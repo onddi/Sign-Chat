@@ -25,6 +25,8 @@ controller.enable_gesture(Leap.Gesture.TYPE_SCREEN_TAP)
 
 
 
+
+
 past_symbol = 'a'
 prev_prediction = None
 
@@ -40,7 +42,7 @@ ACTION_TRAINING_START = "training_start"
 ACTION_TRAINING_INPROGRESS = "training_inprogress"
 ACTION_TRAINING_DONE = "training_done"
 ACTION_TRAINING_ERROR = "training_error"
-
+GESTURE_BLOCKING = "block"
 ACTION_GESTURE = "gesture"
 
 ACTION_SIGN = "sign_prediction"
@@ -121,6 +123,7 @@ def get_signs(model_name):
 
 @socketio.on('start_sign_reading')
 def start_sign_reading():
+    print("STOP SIGN READING")
     global read_sign
     read_sign = True
     read_leap()
@@ -138,8 +141,9 @@ def read_leap():
     while read_sign or read_gestures:
         sign, gesture = current_symbol()
         if gesture:
-            print(gesture)
-            socketio.emit(ACTION_GESTURE, gesture)
+            if gesture != GESTURE_BLOCKING:
+                print(gesture)
+                socketio.emit(ACTION_GESTURE, gesture)
         elif sign:
             # pass
             print(sign)

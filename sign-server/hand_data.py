@@ -7,13 +7,13 @@ from lib.Leap import Bone
 ACTION_GESTURE_LEFT = "swipe_left"
 ACTION_GESTURE_RIGHT = "swipe_right"
 ACTION_GESTURE_CIRCLE = "circle"
-
+GESTURE_BLOCKING = "block"
 
 
 
 def get_hand_and_gesture(controller):
-    hand_pos, frame = get_hand_position(controller)
-    gesture = get_current_gesture(frame)
+    hand_pos = get_hand_position(controller)
+    gesture = get_current_gesture(controller.frame())
 
     return hand_pos, gesture
 
@@ -29,7 +29,7 @@ def get_hand_position(controller, blocking=False):
 
 
     if not blocking and len(frame.fingers) == 0:
-        return None, frame
+        return None
 
     while len(frame.fingers) == 0:
         frame = controller.frame()
@@ -54,33 +54,48 @@ def get_hand_position(controller, blocking=False):
         for j in range(3):
             calibrated_finger_bones["feat" + str(i*3+j)] = normalized_joint[j]
 
-    return calibrated_finger_bones, frame
+    return calibrated_finger_bones
+
+previous_progress = 0
 
 def get_current_gesture(frame):
     for gesture in frame.gestures():
         if gesture:
-            print(gesture.type)
+            print(gesture.id)
+            if(gesture.state==Leap.Gesture.STATE_STOP):
+                print("***STOPPED****")
+
+            elif(gesture.state==Leap.Gesture.STATE_UPDATE):
+                print("*** UPDATING ****")
+
+            else:
+
+                print("***    MOOOOOOVIIIING ****")
+
             if gesture.type is Leap.Gesture.TYPE_CIRCLE:
-                # print("*CIRCLE*")
-
-                # if(gesture.state==Leap.Gesture.STATE_STOP):
-                #     print("***STOPPED****")
-                #
-                # elif(gesture.state==Leap.Gesture.STATE_UPDATE):
-                #     print("*** UPDATING ****")
-                #
-                # else:
-                #
-                #     print("***    MOOOOOOVIIIING ****")
                 circle = Leap.CircleGesture(gesture)
-                print(circle.progress)
 
-                return ACTION_GESTURE_CIRCLE
+
+                if(circle.progress > 1):
+                    print("*CIRCLE*")
+                    print(circle.progress)
+                    global previous_progress
+
+                    if(circle.progress == previous_progress):
+                        previous_progress = 0
+                        return ACTION_GESTURE_CIRCLE
+                    previous_progress = circle.progress
+
             if gesture.type is Leap.Gesture.TYPE_SWIPE:
                 swipe = Leap.SwipeGesture(gesture)
+                print("speed " + str(swipe.speed))
+                print("start " + str(swipe.start_position))
+                print("position" + str(swipe.position))
+
                 if (swipe.direction.x > 0):
                     return ACTION_GESTURE_RIGHT
                 return ACTION_GESTURE_LEFT
+        return GESTURE_BLOCKING
 
     return None
 
