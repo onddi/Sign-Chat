@@ -11,8 +11,7 @@ import {
   listenToGestures
 } from '../api/sign'
 
-import Select from 'react-select';
-import 'react-select/dist/react-select.css';
+import '../styles/SignView.css'
 
 class SignView extends Component {
 
@@ -26,21 +25,20 @@ class SignView extends Component {
       currentSymbol: '',
       symbolToConfirm: '',
       selectedRoomOption: { value: 'Alexa', label: 'Alexa' },
-      selectedModelOption: { value: 'alexa', label: 'alexa'},
-      modelNames: []
+      modelNames: [],
+      confirmingSign: false
     }
 
     _.bindAll(this,
       'interpretSign',
       'toggleMode',
       'sendMessage',
-      'handleRoomChange',
       'handleKeyDown',
       'messageEvent',
       'addSignToMessage',
       'updateSymbolStrength',
       'deleteMessage',
-      'handleModelChange'
+      'backSpace'
     )
   }
 
@@ -52,8 +50,13 @@ class SignView extends Component {
           const m = _.split(s, "'")[1]
           return {value: m, label: m}
         })
+
         signModels(modelNames)
-        chooseModel(_.first(modelNames).value)
+
+        const chosenModel = _.first(modelNames).value
+        chooseModel(chosenModel)
+        this.handleModelChange(chosenModel)
+
         this.setState({modelNames})
       })
 
@@ -65,18 +68,17 @@ class SignView extends Component {
     listenToGestures(gesture => {
       console.log("GESTURE", gesture)
       if(gesture === 'swipe_left') {
-        this.deleteMessage()
+        //this.backSpace()
       } else if (gesture === 'swipe_right') {
-        this.addSignToMessage(this.state.symbolToConfirm)
+        //this.addSignToMessage(this.state.symbolToConfirm)
       } else if (gesture === 'circle') {
-        this.messageEvent()
+        //this.messageEvent()
       }
     })
   }
 
   componentWillMount() {
     document.addEventListener("keydown", this.handleKeyDown, false);
-
     stopSignReading()
   }
 
@@ -85,8 +87,46 @@ class SignView extends Component {
     document.removeEventListener("keydown", this.handleKeyDown, false);
   }
 
+  componentWillReceiveProps(nextProps) {
+    const {chosenModel} = nextProps
+    if(this.props.chosenModel !== chosenModel) {
+      this.handleModelChange(chosenModel)
+    }
+  }
+
   handleKeyDown(event) {
-    if (event.keyCode === 32) { this.toggleMode() }
+    const {keyCode} = event
+    if (keyCode === 32) { this.toggleMode() }
+    else if (keyCode === 27) { toggleModal(true) }
+    else if (keyCode === 13) { this.messageEvent() }
+    else if (keyCode === 37) { this.backSpace() }
+    else if (keyCode === 39) { this.addSignToMessage(this.state.symbolToConfirm) }
+  }
+
+  handleModelChange = (chosenModel) => {
+    axios.get(`http://127.0.0.1:5000/set_model?model=${chosenModel}`)
+  }
+
+  messageEvent() {
+    const { currentMessage } = this.state
+    const sentence = _.join(_.filter(currentMessage, c => c !== " "), " ")
+
+    if (sentence.length > 0) {
+      this.sendMessage(sentence)
+    }
+  }
+
+  sendMessage(msg) {
+    const { selectedRoomOption } = this.state
+    const { label } = selectedRoomOption
+
+    const message = `${label}, ${msg}?`
+    newMessage({ roomId: label, message })
+
+    this.setState({
+      signs: [],
+      currentMessage: []
+    })
   }
 
   areArrayLastXElemsOfStr(arr, num, str) {
@@ -101,37 +141,27 @@ class SignView extends Component {
     return _.isEqual(amountOfSameSymbols, num)
   }
 
-  messageEvent() {
-    const { currentMessage } = this.state
-    const phrase = _.join(_.filter(currentMessage, c => c !== " "), " ")
-
-    if (phrase.length > 0) {
-      this.sendMessage(phrase)
-
-      this.setState({
-        signs: [],
-        currentMessage: []
-      })
-    }
-  }
-
   addSignToConfirm(symbol) {
     const {symbolToConfirm} = this.state
-
-    this.setState({ symbolToConfirm: symbol })
+    this.setState({
+      symbolToConfirm: symbol,
+      confirmingSign: true
+    })
   }
 
   addSignToMessage(symbol) {
     const { currentMessage } = this.state
 
-    const newSign = symbol !== _.last(currentMessage)
-    const messages = newSign ? currentMessage.concat(symbol) : currentMessage
+    //const newSign = symbol !== _.last(currentMessage)
+    //const messages = newSign ? currentMessage.concat(symbol) : currentMessage
 
     this.setState({
       symbolToConfirm: '',
-      currentMessage: messages,
+      currentMessage: currentMessage.concat(symbol),
       currentSymbol: symbol,
-      currentSymbolStrength: 1
+      currentSymbolStrength: 0,
+      signs: [],
+      confirmingSign: false
     })
   }
 
@@ -154,7 +184,19 @@ class SignView extends Component {
     })
   }
 
+  backSpace(){
+    const {confirmingSign, currentMessage} = this.state
+    this.setState({
+      currentMessage: confirmingSign ? currentMessage : _.initial(currentMessage),
+      signs: [],
+      symbolToConfirm: '',
+      confirmingSign: false
+    })
+  }
+
   interpretSign(symbol){
+    if(this.state.confirmingSign) return
+
     const updatedStreamOfSigns = this.state.signs.concat(symbol)
     const signThresholdNum = 10
     const lastXOfStream = _.takeRight(updatedStreamOfSigns, signThresholdNum)
@@ -169,42 +211,12 @@ class SignView extends Component {
     } else {
       this.updateSymbolStrength(lastXOfStream, symbol, signThresholdNum)
     }
-
-    //const lastXSameSigns = _.reduce(lastXSigns, (result, value) => result === value ? result : ' ') //Sign shoud be showed numOfSigns times
-
   }
 
   toggleMode() {
-    this.setState({ mode: !this.state.mode }, () => this.getSign())
-  }
-
-  getSign() {
-    this.state.mode ? startSignReading() : stopSignReading()
-
-
-    /*if (this.state.mode) {
-      this.interval = window.setInterval(() => this.pollSign(), 100);
-    } else {
-      clearInterval(this.interval)
-    }*/
-  }
-
-  sendMessage(msg) {
-    const { selectedRoomOption } = this.state
-    const { label } = selectedRoomOption
-
-    const message = `${label}, ${msg}?`
-    newMessage({ roomId: label, message })
-  }
-
-  handleRoomChange = (selectedRoomOption) => {
-    this.setState({ selectedRoomOption });
-    console.log(`Selected: ${selectedRoomOption.label}`);
-  }
-
-  handleModelChange = (selectedModelOption) => {
-    axios.get(`http://127.0.0.1:5000/set_model?model=${selectedModelOption.value}`)
-    this.setState({ selectedModelOption })
+    this.setState({ mode: !this.state.mode },
+      () => this.state.mode ? startSignReading() : stopSignReading()
+    )
   }
 
   render() {
@@ -213,86 +225,31 @@ class SignView extends Component {
       currentMessage,
       currentSymbol,
       currentSymbolStrength,
-      messageToBeSent,
-      selectedRoomOption,
-      selectedModelOption,
-      modelNames,
-      symbolToConfirm
+      symbolToConfirm,
+      confirmingSign
     } = this.state
 
-    const rooms = this.props.rooms && this.props.rooms.map((s, i) => ({value: s, label: s}))
-    const currentMessageList = currentMessage.map((s,i) => <div key={i}><span>{s}</span></div>)
-
-    const value = selectedRoomOption && selectedRoomOption.value;
     const symbolStrength = _.isUndefined(currentSymbolStrength) ? 0 : currentSymbolStrength
-    const phrase = _.join(_.filter(currentMessage, c => c !== " "), " ")
+    const sentence = _.join(_.filter(currentMessage, c => c !== " "), " ")
 
-    const modelValue = selectedModelOption && selectedModelOption.value
+    const modelButtonStyle = mode ? 'btn-outline-success' : 'btn-outline-secondary'
 
-    const inputStyle = {
-      width: '100%',
-      height: '50px',
-      fontSize: '1.5rem'
+    const phraseStyle = {
+      color: 'green',
+      opacity: confirmingSign ? 1 : symbolStrength
     }
-
-    console.log("CHOSEN MODEL", this.props.chosenModel)
-
-    /*
-    <Select
-      className=""
-      name="form-field-name"
-      value={modelValue}
-      onChange={this.handleModelChange}
-      options={modelNames}
-    />
-    */
 
     return (
       <React.Fragment>
-        <div className="row justify-content-md-center">
-          <div className="col-md-6">
-            <h1>SignView</h1>
-
-            <br />
-
-            <button type="button"
-                    onClick={() => toggleModal(true)}
-                    className="btn btn-lg btn-primary">Open modal</button>
-
-            <div>
-              <h4>Current model</h4>
-              <h4>{this.props.chosenModel}</h4>
+        <div className="sign-view-container">
+          <div className="row justify-content-md-center">
+            <div className="col-md-12">
+              <div style={{ width: '100%' }}>
+                <h3>
+                  <button type="button" className={`btn ${modelButtonStyle}`}>{this.props.chosenModel}</button> {sentence} <span style={phraseStyle}>{confirmingSign ? symbolToConfirm : currentSymbol}</span>
+                </h3>
+              </div>
             </div>
-
-            <br />
-
-            <div>
-              <h4>Send to room</h4>
-              <Select
-                className=""
-                name="form-field-name"
-                value={value}
-                onChange={this.handleRoomChange}
-                options={rooms}
-              />
-            </div>
-            <br />
-
-            <div>
-              <h2>Current symbol</h2><button className="btn btn-outline-primary" onClick={this.toggleMode}>{mode ? 'Stop' : 'Start'}</button>
-              <span style={{ opacity: symbolStrength }}>{currentSymbol}</span>
-            </div>
-
-            <div>
-              <h2>Symbol to confirm</h2>
-              <span>{symbolToConfirm}</span>
-            </div>
-
-            <div style={{ width: '100%' }}>
-              <h2>Message to be sent</h2>
-              <input style={inputStyle} value={phrase} />
-            </div>
-
           </div>
         </div>
       </React.Fragment>
