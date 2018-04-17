@@ -3,7 +3,10 @@ import _ from 'lodash'
 
 import {
   testAction,
-  listRooms
+  listRooms,
+  toggleModal,
+  signModels,
+  chooseModel
 } from './actions'
 
 export default (initialState = {}) => {
@@ -13,6 +16,9 @@ export default (initialState = {}) => {
     rooms: listRooms.$.map(r => {
       console.log(r)
       return r
-    }).toProperty(initialState.rooms)
+    }).toProperty(initialState.rooms),
+    modalOpen: toggleModal.$.toProperty(initialState.modalOpen),
+    signModels: signModels.$.map(r => r).toProperty(initialState.signModels),
+    chosenModel: chooseModel.$.toProperty(initialState.chosenModel)
   })
 }

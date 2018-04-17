@@ -24,4 +24,30 @@ const errorTraining = cb => {
   socket.on(ACTIONS.ERROR, v => cb(v))
 }
 
-export { trainSign, startedTraining, inprogressTraining, finishedTraining, errorTraining }
+const startSignReading = () => {
+  socket.emit('start_sign_reading')
+}
+
+const stopSignReading = () => {
+  socket.emit('stop_sign_reading')
+}
+
+const listenToSigns = cb => {
+  socket.on('sign_prediction', v => cb(v))
+}
+
+const listenToGestures = cb => {
+  socket.on('gesture', v => cb(v))
+}
+
+export {
+  trainSign,
+  startedTraining,
+  inprogressTraining,
+  finishedTraining,
+  errorTraining,
+  startSignReading,
+  stopSignReading,
+  listenToSigns,
+  listenToGestures
+}

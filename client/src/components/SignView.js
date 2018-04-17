@@ -2,20 +2,17 @@ import React, { Component } from 'react';
 import axios from 'axios'
 import Leap from 'leapjs'
 import _ from 'lodash'
+import { toggleModal, signModels, chooseModel } from '../megablob/actions'
 import { newMessage } from '../api/chat'
+import {
+  startSignReading,
+  stopSignReading,
+  listenToSigns,
+  listenToGestures
+} from '../api/sign'
 
 import Select from 'react-select';
 import 'react-select/dist/react-select.css';
-
-const commands = {
-  'a': 'What is the weather like in Helsinki',
-  'b': 'Are you a computer',
-  'c': 'Where is Aalto university'
-}
-
-const ACTIONS = {
-  SEND: 'empty'
-}
 
 class SignView extends Component {
 
@@ -27,6 +24,7 @@ class SignView extends Component {
       mode: false,
       currentMessage: [],
       currentSymbol: '',
+      symbolToConfirm: '',
       selectedRoomOption: { value: 'Alexa', label: 'Alexa' },
       selectedModelOption: { value: 'alexa', label: 'alexa'},
       modelNames: []
@@ -35,8 +33,6 @@ class SignView extends Component {
     _.bindAll(this,
       'interpretSign',
       'toggleMode',
-      'getSign',
-      'mockSign',
       'sendMessage',
       'handleRoomChange',
       'handleKeyDown',
@@ -56,12 +52,32 @@ class SignView extends Component {
           const m = _.split(s, "'")[1]
           return {value: m, label: m}
         })
+        signModels(modelNames)
+        chooseModel(_.first(modelNames).value)
         this.setState({modelNames})
       })
+
+    listenToSigns(sign => {
+      console.log(sign)
+      this.interpretSign(sign)
+    })
+
+    listenToGestures(gesture => {
+      console.log("GESTURE", gesture)
+      if(gesture === 'swipe_left') {
+        this.deleteMessage()
+      } else if (gesture === 'swipe_right') {
+        this.addSignToMessage(this.state.symbolToConfirm)
+      } else if (gesture === 'circle') {
+        this.messageEvent()
+      }
+    })
   }
 
   componentWillMount() {
     document.addEventListener("keydown", this.handleKeyDown, false);
+
+    stopSignReading()
   }
 
   componentWillUnmount() {
@@ -99,15 +115,21 @@ class SignView extends Component {
     }
   }
 
+  addSignToConfirm(symbol) {
+    const {symbolToConfirm} = this.state
+
+    this.setState({ symbolToConfirm: symbol })
+  }
+
   addSignToMessage(symbol) {
-    const { currentMessage, signs } = this.state
+    const { currentMessage } = this.state
 
     const newSign = symbol !== _.last(currentMessage)
     const messages = newSign ? currentMessage.concat(symbol) : currentMessage
-    const cleanSends = _.filter(messages, c => c !== ACTIONS.SEND)
 
     this.setState({
-      currentMessage: cleanSends,
+      symbolToConfirm: '',
+      currentMessage: messages,
       currentSymbol: symbol,
       currentSymbolStrength: 1
     })
@@ -124,31 +146,26 @@ class SignView extends Component {
     })
   }
 
-  deleteMessage(symbol){
+  deleteMessage(){
     this.setState({
       signs: [],
       currentMessage: [],
-      currentSymbol: symbol
+      currentSymbol: ''
     })
   }
 
-  interpretSign(data){
-    const {symbol} = data
-
+  interpretSign(symbol){
     const updatedStreamOfSigns = this.state.signs.concat(symbol)
-    const signThresholdNum = 5
+    const signThresholdNum = 10
     const lastXOfStream = _.takeRight(updatedStreamOfSigns, signThresholdNum)
 
     const thresholdConfirmed = this.areArrayLastXElemsSame(lastXOfStream, signThresholdNum)
-    const shouldSend = _.isEqual(symbol, ACTIONS.SEND)
-    const shouldBackspace = _.isEqual(symbol, 'no')
 
-    if (thresholdConfirmed && shouldSend) {
-      this.messageEvent()
-    } else if(thresholdConfirmed && shouldBackspace){
-      this.deleteMessage(symbol)
-    } else if(thresholdConfirmed) {
-      this.addSignToMessage(symbol)
+    //const shouldSend = _.isEqual(symbol, ACTIONS.SEND)
+    //const shouldBackspace = _.isEqual(symbol, 'no')
+
+    if(thresholdConfirmed) {
+      this.addSignToConfirm(symbol)
     } else {
       this.updateSymbolStrength(lastXOfStream, symbol, signThresholdNum)
     }
@@ -161,31 +178,15 @@ class SignView extends Component {
     this.setState({ mode: !this.state.mode }, () => this.getSign())
   }
 
-  pollSign() {
-    return axios.get('http://127.0.0.1:5000/current')
-      .then(({ data }) => {
-        console.log(data.symbol)
-        this.interpretSign(data)
-      })
-  }
-
   getSign() {
-    if (this.state.mode) {
+    this.state.mode ? startSignReading() : stopSignReading()
+
+
+    /*if (this.state.mode) {
       this.interval = window.setInterval(() => this.pollSign(), 100);
     } else {
       clearInterval(this.interval)
-    }
-  }
-
-  mockSign(key) {
-    const { currentSymbol, currentMessage } = this.state
-    const chosenCommand = _.sample(commands)
-
-    this.setState({
-      currentSymbol: chosenCommand
-    })
-
-    this.sendMessage(chosenCommand)
+    }*/
   }
 
   sendMessage(msg) {
@@ -215,7 +216,8 @@ class SignView extends Component {
       messageToBeSent,
       selectedRoomOption,
       selectedModelOption,
-      modelNames
+      modelNames,
+      symbolToConfirm
     } = this.state
 
     const rooms = this.props.rooms && this.props.rooms.map((s, i) => ({value: s, label: s}))
@@ -233,6 +235,18 @@ class SignView extends Component {
       fontSize: '1.5rem'
     }
 
+    console.log("CHOSEN MODEL", this.props.chosenModel)
+
+    /*
+    <Select
+      className=""
+      name="form-field-name"
+      value={modelValue}
+      onChange={this.handleModelChange}
+      options={modelNames}
+    />
+    */
+
     return (
       <React.Fragment>
         <div className="row justify-content-md-center">
@@ -241,15 +255,13 @@ class SignView extends Component {
 
             <br />
 
+            <button type="button"
+                    onClick={() => toggleModal(true)}
+                    className="btn btn-lg btn-primary">Open modal</button>
+
             <div>
-              <h4>What model to use</h4>
-              <Select
-                className=""
-                name="form-field-name"
-                value={modelValue}
-                onChange={this.handleModelChange}
-                options={modelNames}
-              />
+              <h4>Current model</h4>
+              <h4>{this.props.chosenModel}</h4>
             </div>
 
             <br />
@@ -271,11 +283,16 @@ class SignView extends Component {
               <span style={{ opacity: symbolStrength }}>{currentSymbol}</span>
             </div>
 
+            <div>
+              <h2>Symbol to confirm</h2>
+              <span>{symbolToConfirm}</span>
+            </div>
+
             <div style={{ width: '100%' }}>
               <h2>Message to be sent</h2>
               <input style={inputStyle} value={phrase} />
             </div>
-            
+
           </div>
         </div>
       </React.Fragment>

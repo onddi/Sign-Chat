@@ -3,6 +3,8 @@ import { BrowserRouter as Router, Route, Link } from 'react-router-dom'
 import Chat from './components/Chat'
 import SignView from './components/SignView'
 import TrainView from './components/TrainView'
+import Modal from './components/Modal'
+
 
 import { joinableRooms } from './api/chat'
 import { listRooms } from './megablob/actions'
@@ -19,7 +21,7 @@ const rooms = () => {
 const App = (props) => (
   <Router>
     <div className="App">
-      {props.testState}
+      {props.modalOpen && <Modal signModels={props.signModels}/> }
       {rooms()}
       <ul className="nav nav-pills">
         <li className="nav-item"><Link className="nav-link" to="/">Chat</Link></li>
@@ -30,7 +32,7 @@ const App = (props) => (
       <hr />
 
       <Route exact path="/" render={() => (<Chat rooms={props.rooms} />)} />
-      <Route exact path="/sign" render={() => (<SignView rooms={props.rooms} />)} />
+      <Route exact path="/sign" render={() => (<SignView rooms={props.rooms} chosenModel={props.chosenModel} />)} />
       <Route exact path="/train" render={() => (<TrainView />)} />
     </div>
   </Router>
