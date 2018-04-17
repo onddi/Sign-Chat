@@ -13,9 +13,7 @@ class TrainAccordion extends Component {
       selectedModelOption: emptyOption,
       selectedSignOption: emptyOption,
       modelInput: '',
-      signInput: '',
-      chosenModel: '',
-      chosenSign: ''
+      signInput: ''
     }
 
     _.bindAll(this,
@@ -27,27 +25,29 @@ class TrainAccordion extends Component {
   }
 
   modelOptionChange(selectedModelOption) {
-    console.log(selectedModelOption)
-    const {value} = selectedModelOption ? selectedModelOption : emptyOption
+    const selectedOption = selectedModelOption ? selectedModelOption : emptyOption
+    const {value} = selectedOption
 
     this.props.setModel(value)
     this.props.getSigns(value)
 
     this.setState({
-      selectedModelOption,
+      selectedModelOption: selectedOption,
       modelInput: ''
     })
   }
 
   signOptionChange(selectedSignOption) {
-    const {value} = selectedSignOption
+    const selectedOption = selectedSignOption ? selectedSignOption : emptyOption
+    const {value} = selectedOption
 
-    this.props.setSign(value)
+    if(value !== '') {
+      this.props.setSign(value)
+    }
 
     this.setState({
-      selectedSignOption,
-      signInput: '',
-      chosenSign: ''
+      selectedSignOption: selectedOption,
+      signInput: ''
     })
   }
 
@@ -83,7 +83,8 @@ class TrainAccordion extends Component {
       setModel,
       chosenModel,
       setSign,
-      chosenSign
+      chosenSign,
+      doingTraining
     } = this.props
 
     const modelValue = selectedModelOption && selectedModelOption.value
@@ -104,7 +105,8 @@ class TrainAccordion extends Component {
                         inputValue={modelInput}
                         confirm={setModel}
                         confirmed={chosenModel}
-                        modelNeeded={false}/>
+                        modelNeeded={false}
+                        doingTraining={doingTraining}/>
 
         <AccordionCard  headingId="headTwo"
                         heading="Sign"
@@ -117,7 +119,8 @@ class TrainAccordion extends Component {
                         inputValue={signInput}
                         confirm={setSign}
                         confirmed={chosenSign}
-                        modelNeeded={modelChosen}/>
+                        modelNeeded={modelChosen}
+                        doingTraining={doingTraining}/>
       </div>
     )
   }

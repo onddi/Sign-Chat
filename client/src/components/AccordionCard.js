@@ -17,11 +17,12 @@ const AccordionCard = (props) => {
     inputValue,
     confirm,
     confirmed,
-    modelNeeded
+    modelNeeded,
+    doingTraining
   } = props
 
-  const headingText = confirmed ? `${heading}: ${confirmed}` : `Choose ${heading}`
-  const buttonStyle = modelNeeded ? 'btn-secondary' : confirmed ? 'btn-success' : 'btn-warning'
+  const headingText = confirmed ? `Chosen ${heading}: ${confirmed}` : `Choose ${heading}`
+  const buttonStyle = modelNeeded ? 'btn-secondary' : confirmed ? 'btn-primary' : 'btn-warning'
 
   const collapse = (modelNeeded || confirmed) ? 'collapse' : 'collapse.show'
 
@@ -29,12 +30,12 @@ const AccordionCard = (props) => {
     <div className="card">
       <div className="card-header" id={headingId}>
         <h5 className="mb-0">
-          <button className={`btn btn-block ${buttonStyle}`}
+          <button className={`btn btn-block btn-training ${buttonStyle}`}
                   data-toggle={'collapse'}
                   data-target={`#${collapseId}`}
                   aria-expanded={false}
                   aria-controls={collapseId}
-                  disabled={modelNeeded}>
+                  disabled={modelNeeded || doingTraining}>
             {headingText}
           </button>
         </h5>
