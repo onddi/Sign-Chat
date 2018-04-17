@@ -265,14 +265,17 @@ class SignView extends Component {
               />
             </div>
             <br />
+
             <div>
               <h2>Current symbol</h2><button className="btn btn-outline-primary" onClick={this.toggleMode}>{mode ? 'Stop' : 'Start'}</button>
               <span style={{ opacity: symbolStrength }}>{currentSymbol}</span>
             </div>
+
             <div style={{ width: '100%' }}>
               <h2>Message to be sent</h2>
               <input style={inputStyle} value={phrase} />
             </div>
+            
           </div>
         </div>
       </React.Fragment>

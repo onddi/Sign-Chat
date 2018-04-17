@@ -23,6 +23,7 @@ class Room extends Component {
   }
 
   componentDidMount() {
+    console.log("ROOM MOUNTED", this.props.selectedRoom)
     listenForMessages(value => {
       const { user, message, time } = value
       console.log("COMING FROM ROOM", this.props.selectedRoom)

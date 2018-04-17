@@ -2,10 +2,20 @@ import React, { Component } from 'react';
 import axios from 'axios'
 import _ from 'lodash'
 
-import { trainSign, startedTraining, inprogressTraining, finishedTraining, errorTraining } from '../api/sign'
+import TrainAccordion from './TrainAccordion'
+
+import {
+  trainSign,
+  startedTraining,
+  inprogressTraining,
+  finishedTraining,
+  errorTraining
+} from '../api/sign'
 
 import Select from 'react-select';
 import 'react-select/dist/react-select.css';
+
+import { ACTIONS } from '../enums/enums'
 
 class TrainView extends Component {
 
@@ -13,21 +23,16 @@ class TrainView extends Component {
     super(props)
 
     this.state = {
-      selectedModelOption: { value: '', label: ''},
-      modelInputValue: '',
-      selectedSignOption: { value: '', label: ''},
-      signInputValue: '',
       trainingProgress: ''
     }
 
     _.bindAll(this,
-      'handleModelInputChange',
-      'handleModelChange',
-      'handleSignInputChange',
-      'handleSignChange',
       'trainSign',
       'getModels',
-      'getSigns'
+      'getSigns',
+      'trainModel',
+      'setModel',
+      'setSign'
     )
   }
 
@@ -80,72 +85,55 @@ class TrainView extends Component {
       })
   }
 
-  handleModelChange(selectedModelOption) {
-    //this.handleModelInputChange(selectedModelOption.value)
-    this.getSigns(selectedModelOption.value)
-    this.setState({selectedModelOption, modelInputValue: selectedModelOption.value})
+  trainSign(model, sign) {
+    trainSign({model, sign})
   }
 
-  handleSignChange(selectedSignOption) {
-    this.setState({selectedSignOption, signInputValue: selectedSignOption.value})
+  trainModel() {
+    axios.get(`http://127.0.0.1:5000/train_model?model=${this.state.modelInputValue}`)
+      .then(({data}) => {
+        console.log(data)
+      })
   }
 
-  handleModelInputChange(e) {
-    this.setState({modelInputValue: e.target.value, selectedModelOption: {value: '', label: ''}})
+  setModel(chosenModel) {
+    console.log(chosenModel)
+    this.setState({chosenModel})
   }
 
-  handleSignInputChange(e) {
-    this.setState({signInputValue: e.target.value, selectedSignOption: {value: '', label: ''}})
-  }
-
-  trainSign() {
-    const {signInputValue, modelInputValue} = this.state
-    trainSign({sign: signInputValue, model: modelInputValue})
+  setSign(chosenSign) {
+    this.setState({chosenSign})
   }
 
   render() {
     const {
-      selectedModelOption,
       modelNames,
-      modelInputValue,
-      selectedSignOption,
       signNames,
-      signInputValue,
-      trainingProgress
+      trainingProgress,
+      chosenModel,
+      chosenSign
     } = this.state
 
-    const modelValue = selectedModelOption && selectedModelOption.value
-    const signValue = selectedSignOption && selectedSignOption.value
+    const readyToTrain = chosenSign && chosenModel
+    const buttonStyle = readyToTrain ? 'btn-success' : 'btn-secondary'
 
     return (
       <div>
-        <h1>TrainView</h1>
-        <div>
-          <h4>Select model (or create new)</h4>
-          <Select
-            className=""
-            name="form-field-name"
-            value={modelValue}
-            onChange={this.handleModelChange}
-            options={modelNames}
-          />
-          <h5>Model to train</h5>
-          <input onChange={this.handleModelInputChange} value={modelInputValue} />
-        </div>
-        <div>
-          <h4>Select sign (or create new)</h4>
-          <Select
-            className=""
-            name="form-field-name"
-            value={signValue}
-            onChange={this.handleSignChange}
-            options={signNames}
-          />
-          <h5>Model to train</h5>
-          <input onChange={this.handleSignInputChange} value={signInputValue} />
-        </div>
-        <button onClick={this.trainSign}>Train</button>
+        <h1>Training signs for models</h1>
+
+        <TrainAccordion modelNames={modelNames}
+                        setModel={this.setModel}
+                        signNames={signNames}
+                        getSigns={this.getSigns}
+                        setSign={this.setSign}
+                        chosenModel={chosenModel}
+                        chosenSign={chosenSign}/>
+
         <h4>{trainingProgress}</h4>
+        <button type="button"
+                className={`btn btn-lg btn-block ${buttonStyle}`}
+                onClick={() => this.trainSign(chosenModel, chosenSign)}
+                disabled={!readyToTrain}>Train sign</button>
       </div>
     );
   }

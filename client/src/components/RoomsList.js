@@ -29,10 +29,10 @@ class RoomsList extends Component {
 
     return (
       <div className="RoomsList">
-        <div class="input-group mb-3">
-          <input type="text" value={roomInput} onChange={this.handleRoomInput} class="form-control" placeholder="Room name" aria-label="Recipient's username" aria-describedby="basic-addon2" />
-          <div class="input-group-append">
-            <button onClick={this.createRoom} class="btn btn-outline-secondary" type="button">Create room</button>
+        <div className="input-group mb-3">
+          <input type="text" value={roomInput} onChange={this.handleRoomInput} className="form-control" placeholder="Room name" aria-label="Recipient's username" aria-describedby="basic-addon2" />
+          <div className="input-group-append">
+            <button onClick={this.createRoom} className="btn btn-outline-secondary" type="button">Create room</button>
           </div>
         </div>
         <h3>Rooms</h3>

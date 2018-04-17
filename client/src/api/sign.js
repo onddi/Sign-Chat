@@ -1,11 +1,6 @@
 import openSocket from 'socket.io-client';
 
-const ACTIONS = {
-  START: 'training_start',
-  INPROGRESS: 'training_inprogress',
-  DONE: 'training_done',
-  ERROR: 'training_error'
-}
+import { ACTIONS } from '../enums/enums'
 
 const socket = openSocket('http://127.0.0.1:5000');
 

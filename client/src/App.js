@@ -7,10 +7,12 @@ import TrainView from './components/TrainView'
 import { joinableRooms } from './api/chat'
 import { listRooms } from './megablob/actions'
 
+import _ from 'lodash'
+
 const rooms = () => {
   console.log("calling rooms")
   joinableRooms(rooms => {
-    listRooms(['Alexa'].concat(rooms))
+    listRooms(_.uniq(['Alexa'].concat(rooms)))
   })
 }
 

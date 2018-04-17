@@ -6,6 +6,7 @@ from db import get_all_models, get_model_signs, delete_sign
 import pickle
 import random
 import redis
+import numpy
 from flask_cors import CORS
 from flask_socketio import SocketIO, send, emit
 import time
@@ -225,7 +226,7 @@ def train_char(model_name, training_word):
         if t % 10 == 0:
             emit(ACTION_TRAINING_INPROGRESS, str(t) + "/" + str(NUM_SAMPLES))
         add_data(model_name=model_name, sign=training_word, **sample)
-    emit(ACTION_TRAINING_DONE, "donezki")
+    emit(ACTION_TRAINING_DONE, "Done training")
 
 
 import os.path
