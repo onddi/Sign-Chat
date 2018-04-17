@@ -11,19 +11,19 @@ const trainSign = ({model, sign}) => {
 }
 
 const startedTraining = cb => {
-  socket.on(ACTIONS.START, v => cb(v))
+  socket.on(ACTIONS.TRAIN_START, v => cb(v))
 }
 
 const inprogressTraining = cb => {
-  socket.on(ACTIONS.INPROGRESS, v => cb(v))
+  socket.on(ACTIONS.TRAIN_INPROGRESS, v => cb(v))
 }
 
 const finishedTraining = cb => {
-  socket.on(ACTIONS.DONE, v => cb(v))
+  socket.on(ACTIONS.TRAIN_DONE, v => cb(v))
 }
 
 const errorTraining = cb => {
-  socket.on(ACTIONS.ERROR, v => cb(v))
+  socket.on(ACTIONS.TRAIN_ERROR, v => cb(v))
 }
 
 const startSignReading = () => {
@@ -47,6 +47,10 @@ const getSignModels = () => {
   return axios.get(`${baseUri}/models`)
 }
 
+const getModelSigns = (model) => {
+  return axios.get(`${baseUri}/models/${model}`)
+}
+
 const setCurrentSignModel = (chosenModel) => {
   return axios.get(`${baseUri}/set_model?model=${chosenModel}`)
 }
@@ -62,5 +66,6 @@ export {
   listenToSigns,
   listenToGestures,
   getSignModels,
-  setCurrentSignModel
+  setCurrentSignModel,
+  getModelSigns
 }

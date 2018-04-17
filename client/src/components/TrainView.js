@@ -9,7 +9,9 @@ import {
   startedTraining,
   inprogressTraining,
   finishedTraining,
-  errorTraining
+  errorTraining,
+  getSignModels,
+  getModelSigns
 } from '../api/sign'
 
 import Select from 'react-select';
@@ -26,9 +28,7 @@ class TrainView extends Component {
 
     _.bindAll(this,
       'trainSign',
-      'getModels',
       'getSigns',
-      'trainModel',
       'setModel',
       'setSign'
     )
@@ -36,7 +36,15 @@ class TrainView extends Component {
 
   componentDidMount(){
 
-    this.getModels()
+    getSignModels()
+      .then(({ data }) => {
+        const {models} = data
+        const modelNames = models.map(s => {
+          const m = _.split(s, "'")[1]
+          return {value: m, label: m}
+        })
+        this.setState({modelNames})
+      })
 
     startedTraining(value => {
       console.log("Started", value)
@@ -57,22 +65,11 @@ class TrainView extends Component {
       console.log("Error training", value)
       this.setState({trainingProgress: value})
     })
-  }
 
-  getModels() {
-    axios.get('http://127.0.0.1:5000/models')
-      .then(({ data }) => {
-        const {models} = data
-        const modelNames = models.map(s => {
-          const m = _.split(s, "'")[1]
-          return {value: m, label: m}
-        })
-        this.setState({modelNames})
-      })
   }
 
   getSigns(model) {
-    axios.get(`http://127.0.0.1:5000/models/${model}`)
+    getModelSigns(model)
       .then(({ data }) => {
         console.log(data)
         const signNames = data.map(s => {
@@ -85,13 +82,6 @@ class TrainView extends Component {
 
   trainSign(model, sign) {
     trainSign({model, sign})
-  }
-
-  trainModel() {
-    axios.get(`http://127.0.0.1:5000/train_model?model=${this.state.modelInputValue}`)
-      .then(({data}) => {
-        console.log(data)
-      })
   }
 
   setModel(chosenModel) {
