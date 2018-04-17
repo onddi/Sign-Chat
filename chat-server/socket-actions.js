@@ -32,10 +32,15 @@ sendMessage = (io, socket, roomId, message) => {
   //socket.broadcast.to(roomId).emit('message', {user: socket.id, message, time}); // broadcast to all cept the sender
 }
 
+sendTranscript = (io, transcript) => {
+  io.emit('transcript', transcript)
+}
+
 module.exports = {
   getRooms,
   joinRoom,
   leaveRoom,
   createRoom,
-  sendMessage
+  sendMessage,
+  sendTranscript
 }

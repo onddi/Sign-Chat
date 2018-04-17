@@ -2,13 +2,11 @@
   text-align: center;
   display: grid;
   grid-gap: 10px;
-  grid-template-rows: 1fr 1fr 4fr 1fr;
+  grid-template-rows: 4fr 1fr;
 
   height: calc(100vh - 60px);
 
   grid-template-areas:
-    "rooms-list"
-    "room-header"
     "room-messages"
     "message-input";
 
@@ -17,12 +15,11 @@
 
 @media (min-width: 500px) {
   .Chat {
-    grid-template-rows: 1fr 4fr 1fr;
+    grid-template-rows: 4fr 1fr;
     grid-template-columns: 312px 3fr;
     grid-template-areas:
-      "rooms-list room-header room-header"
-      "rooms-list room-messages room-messages"
-      "rooms-list message-input message-input";
+      "room-messages room-messages"
+      "message-input message-input";
   }
 }
 
@@ -63,6 +60,7 @@
   align-self: center;
   justify-self: start;
   padding-right: 10px;
+  padding-left: 10px;
 }
 
 .SignMessage {

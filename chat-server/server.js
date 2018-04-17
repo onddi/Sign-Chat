@@ -26,6 +26,7 @@ io.on('connection', function(socket) {
   socket.on('leave room', roomId => { s_actions.leaveRoom(io, socket, roomId) })
   socket.on('create room', roomId => { s_actions.createRoom(io, socket, roomId) })
   socket.on('new message', ({roomId, message}) => { s_actions.sendMessage(io, socket, roomId, message) })
+  socket.on('new transcript', (transcript) => { s_actions.sendTranscript(io, transcript)})
   socket.on('disconnect', function () {
     console.log(socket.id, "disconnected!")
     //io.emit('user disconnected');

@@ -1,5 +1,13 @@
 import React, { Component } from 'react';
-import { createRoom, listenForMessages, newMessage, joinRoom, joinableRooms, leaveRoom } from '../api/chat'
+import {
+  createRoom,
+  listenForMessages,
+  newMessage,
+  joinRoom,
+  joinableRooms,
+  leaveRoom,
+  sendTranscript
+} from '../api/chat'
 
 const SpeechRecognition = window.webkitSpeechRecognition;
 
@@ -51,6 +59,8 @@ class Room extends Component {
     recognition.onresult = (event) => {
       console.log(event.results[0][0].transcript)
       this.setState({ transcript: event.results[0][0].transcript })
+
+      sendTranscript(event.results[0][0].transcript )
     }
   }
 
@@ -86,11 +96,14 @@ class Room extends Component {
     const { messages, messageInput } = this.state
     const messageList = messages.map((d, i) => <li key={i}>[{d.time}] {d.user.substring(0, 5)}: {d.message}</li>);
 
+    /*
+      <div className="RoomHeader">
+        <h1>Current room: {this.props.selectedRoom}</h1>
+      </div>
+    */
+
     return (
       <React.Fragment>
-        <div className="RoomHeader">
-          <h1>Current room: {this.props.selectedRoom}</h1>
-        </div>
         <div className="RoomMessages">
           <ul id="messages">{messageList}</ul>
         </div>

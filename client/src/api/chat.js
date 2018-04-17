@@ -28,4 +28,21 @@ const leaveRoom = (roomId) => {
   socket.emit('leave room', roomId)
 }
 
-export {createRoom, listenForMessages, joinRoom, newMessage, joinableRooms, leaveRoom}
+const sendTranscript = (transcript) => {
+  socket.emit('new transcript', transcript)
+}
+
+const listenForTranscript = cb => {
+  socket.on('transcript', v => cb(v))
+}
+
+export {
+  createRoom,
+  listenForMessages,
+  joinRoom,
+  newMessage,
+  joinableRooms,
+  leaveRoom,
+  sendTranscript,
+  listenForTranscript
+}
