@@ -14,7 +14,26 @@ class Modal extends Component {
       fade: false
     }
 
-    this.updateCurrentIndex = this.updateCurrentIndex.bind(this)
+    _.bindAll(this,
+      'updateCurrentIndex',
+      'changeIndex',
+      'handleKeyDown'
+    )
+  }
+
+  componentWillMount() {
+    document.addEventListener("keydown", this.handleKeyDown, false);
+  }
+
+  componentWillUnmount() {
+    document.removeEventListener("keydown", this.handleKeyDown, false);
+  }
+
+  handleKeyDown(event) {
+    const {keyCode} = event
+    if (keyCode === 37) { this.changeIndex(event, -1) }
+    else if (keyCode === 39) { this.changeIndex(event, 1) }
+    else if (keyCode === 27) { this.pickModel(event, this.props.signModels[this.state.currentIndex].value) }
   }
 
   componentDidMount() {
@@ -75,19 +94,7 @@ class Modal extends Component {
                                                   className={currentIndex === i ? 'current' : ''}>{s.value}</span>)
 
     return (
-      <div className="fullscreen-modal" onClick={(e) => this.pickModel(e, currentModel)}>
-        <button type="button"
-                onClick={() => toggleModal(false)}
-                className="btn btn-lg btn-danger close-modal-btn">Close</button>
-
-        <button type="button"
-                onClick={(e) => this.changeIndex(e, -1)}
-                className="btn btn-lg btn-primary index-modal-btn">Prev</button>
-
-        <button type="button"
-                onClick={(e) => this.changeIndex(e, 1)}
-                className="btn btn-lg btn-primary index-modal-btn next">Next</button>
-
+      <div id="modal" className="fullscreen-modal" onClick={(e) => this.pickModel(e, currentModel)}>
         <div className="middle-container">
           <div onScroll={this.updateCurrentIndex} id="item-list" className="item-list">
             {renderModels}
