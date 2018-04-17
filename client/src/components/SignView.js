@@ -1,5 +1,4 @@
 import React, { Component } from 'react';
-import axios from 'axios'
 import Leap from 'leapjs'
 import _ from 'lodash'
 import { toggleModal, signModels, chooseModel } from '../megablob/actions'
@@ -8,7 +7,9 @@ import {
   startSignReading,
   stopSignReading,
   listenToSigns,
-  listenToGestures
+  listenToGestures,
+  getSignModels,
+  setCurrentSignModel
 } from '../api/sign'
 
 import '../styles/SignView.css'
@@ -43,7 +44,7 @@ class SignView extends Component {
   }
 
   componentDidMount() {
-    axios.get('http://127.0.0.1:5000/models')
+    getSignModels()
       .then(({ data }) => {
         const {models} = data
         const modelNames = models.map(s => {
@@ -104,7 +105,7 @@ class SignView extends Component {
   }
 
   handleModelChange = (chosenModel) => {
-    axios.get(`http://127.0.0.1:5000/set_model?model=${chosenModel}`)
+    setCurrentSignModel(chosenModel)
   }
 
   messageEvent() {
@@ -215,7 +216,9 @@ class SignView extends Component {
 
   toggleMode() {
     this.setState({ mode: !this.state.mode },
-      () => this.state.mode ? startSignReading() : stopSignReading()
+      () => this.state.mode ?
+        startSignReading()
+        : stopSignReading()
     )
   }
 

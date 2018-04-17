@@ -1,8 +1,10 @@
+import axios from 'axios'
 import openSocket from 'socket.io-client';
 
 import { ACTIONS } from '../enums/enums'
 
-const socket = openSocket('http://127.0.0.1:5000');
+const baseUri = 'http://127.0.0.1:5000'
+const socket = openSocket(baseUri);
 
 const trainSign = ({model, sign}) => {
   socket.emit(ACTIONS.TRAIN_SIGN, {model, sign})
@@ -29,7 +31,8 @@ const startSignReading = () => {
 }
 
 const stopSignReading = () => {
-  socket.emit(ACTIONS.SIGN_STOP)
+  //socket.emit(ACTIONS.SIGN_STOP)
+  return axios.get(`${baseUri}/stop`)
 }
 
 const listenToSigns = cb => {
@@ -38,6 +41,14 @@ const listenToSigns = cb => {
 
 const listenToGestures = cb => {
   socket.on(ACTIONS.GESTURE, v => cb(v))
+}
+
+const getSignModels = () => {
+  return axios.get(`${baseUri}/models`)
+}
+
+const setCurrentSignModel = (chosenModel) => {
+  return axios.get(`${baseUri}/set_model?model=${chosenModel}`)
 }
 
 export {
@@ -49,5 +60,7 @@ export {
   startSignReading,
   stopSignReading,
   listenToSigns,
-  listenToGestures
+  listenToGestures,
+  getSignModels,
+  setCurrentSignModel
 }
