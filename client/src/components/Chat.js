@@ -33,9 +33,10 @@ class Chat extends Component {
     const {selectedRoom} = this.state
     const {rooms} = this.props
 
+    //<RoomsList rooms={rooms} changeRoom={this.changeRoom} selectedRoom={selectedRoom}/>
+
     return (
       <div className="Chat">
-        <RoomsList rooms={rooms} changeRoom={this.changeRoom} selectedRoom={selectedRoom}/>
         {selectedRoom &&
           <Room selectedRoom={selectedRoom} />
         }
