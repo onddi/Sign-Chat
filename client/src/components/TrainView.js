@@ -15,8 +15,6 @@ import {
 import Select from 'react-select';
 import 'react-select/dist/react-select.css';
 
-import { ACTIONS } from '../enums/enums'
-
 class TrainView extends Component {
 
   constructor(props){

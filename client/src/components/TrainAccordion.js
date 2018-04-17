@@ -35,8 +35,7 @@ class TrainAccordion extends Component {
 
     this.setState({
       selectedModelOption,
-      modelInput: '',
-      chosenModel: value
+      modelInput: ''
     })
   }
 
