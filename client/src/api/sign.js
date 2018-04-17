@@ -5,7 +5,7 @@ import { ACTIONS } from '../enums/enums'
 const socket = openSocket('http://127.0.0.1:5000');
 
 const trainSign = ({model, sign}) => {
-  socket.emit('train_sign', {model, sign})
+  socket.emit(ACTIONS.TRAIN_SIGN, {model, sign})
 }
 
 const startedTraining = cb => {
@@ -25,19 +25,19 @@ const errorTraining = cb => {
 }
 
 const startSignReading = () => {
-  socket.emit('start_sign_reading')
+  socket.emit(ACTIONS.SIGN_START)
 }
 
 const stopSignReading = () => {
-  socket.emit('stop_sign_reading')
+  socket.emit(ACTIONS.SIGN_STOP)
 }
 
 const listenToSigns = cb => {
-  socket.on('sign_prediction', v => cb(v))
+  socket.on(ACTIONS.SIGN_PREDICTION, v => cb(v))
 }
 
 const listenToGestures = cb => {
-  socket.on('gesture', v => cb(v))
+  socket.on(ACTIONS.GESTURE, v => cb(v))
 }
 
 export {
