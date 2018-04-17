@@ -69,11 +69,11 @@ class SignView extends Component {
     listenToGestures(gesture => {
       console.log("GESTURE", gesture)
       if(gesture === 'swipe_left') {
-        //this.backSpace()
+        this.backSpace()
       } else if (gesture === 'swipe_right') {
-        //this.addSignToMessage(this.state.symbolToConfirm)
+        this.addSignToMessage(this.state.symbolToConfirm)
       } else if (gesture === 'circle') {
-        //this.messageEvent()
+        this.messageEvent()
       }
     })
   }
@@ -99,7 +99,7 @@ class SignView extends Component {
     const {keyCode} = event
     if (keyCode === 32) { this.toggleMode() }
     else if (keyCode === 27) { toggleModal(true) }
-    else if (keyCode === 13) { this.messageEvent() }
+    //else if (keyCode === 13) { this.messageEvent() }
     else if (keyCode === 38) { this.backSpace() }
     else if (keyCode === 40) { this.addSignToMessage(this.state.symbolToConfirm) }
   }

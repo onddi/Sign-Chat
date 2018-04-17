@@ -33,7 +33,7 @@ class Modal extends Component {
     const {keyCode} = event
     if (keyCode === 37) { this.changeIndex(event, -1) }
     else if (keyCode === 39) { this.changeIndex(event, 1) }
-    else if (keyCode === 27) { this.pickModel(event, this.props.signModels[this.state.currentIndex].value) }
+    else if (keyCode === 13) { this.pickModel(event, this.props.signModels[this.state.currentIndex].value) }
   }
 
   componentDidMount() {
