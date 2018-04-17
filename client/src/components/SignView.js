@@ -99,8 +99,8 @@ class SignView extends Component {
     if (keyCode === 32) { this.toggleMode() }
     else if (keyCode === 27) { toggleModal(true) }
     else if (keyCode === 13) { this.messageEvent() }
-    else if (keyCode === 37) { this.backSpace() }
-    else if (keyCode === 39) { this.addSignToMessage(this.state.symbolToConfirm) }
+    else if (keyCode === 38) { this.backSpace() }
+    else if (keyCode === 40) { this.addSignToMessage(this.state.symbolToConfirm) }
   }
 
   handleModelChange = (chosenModel) => {
