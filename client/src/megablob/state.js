@@ -6,7 +6,8 @@ import {
   listRooms,
   toggleModal,
   signModels,
-  chooseModel
+  chooseModel,
+  modalGestures
 } from './actions'
 
 export default (initialState = {}) => {
@@ -19,6 +20,7 @@ export default (initialState = {}) => {
     }).toProperty(initialState.rooms),
     modalOpen: toggleModal.$.toProperty(initialState.modalOpen),
     signModels: signModels.$.map(r => r).toProperty(initialState.signModels),
-    chosenModel: chooseModel.$.toProperty(initialState.chosenModel)
+    chosenModel: chooseModel.$.toProperty(initialState.chosenModel),
+    modalGesture: modalGestures.$.toProperty(initialState.modalGesture)
   })
 }

@@ -1,8 +1,8 @@
 import React, { Component } from 'react';
 import Leap from 'leapjs'
 import _ from 'lodash'
-import { toggleModal, signModels, chooseModel } from '../megablob/actions'
-import { newMessage } from '../api/chat'
+import { toggleModal, signModels, chooseModel, modalGestures } from '../megablob/actions'
+import { newMessage, listenForTranscript } from '../api/chat'
 import {
   startSignReading,
   stopSignReading,
@@ -25,14 +25,13 @@ class SignView extends Component {
       currentMessage: [],
       currentSymbol: '',
       symbolToConfirm: '',
-      selectedRoomOption: { value: 'Alexa', label: 'Alexa' },
       modelNames: [],
       confirmingSign: false
     }
 
     _.bindAll(this,
       'interpretSign',
-      'toggleMode',
+      'setMode',
       'sendMessage',
       'handleKeyDown',
       'messageEvent',
@@ -47,34 +46,35 @@ class SignView extends Component {
     getSignModels()
       .then(({ data }) => {
         const {models} = data
-        const modelNames = models.map(s => {
-          const m = _.split(s, "'")[1]
-          return {value: m, label: m}
-        })
+        const modelNames = models.map(s => _.split(s, "'")[1])
 
         signModels(modelNames)
 
-        const chosenModel = _.first(modelNames).value
+        const chosenModel = _.first(modelNames)
         chooseModel(chosenModel)
-        this.handleModelChange(chosenModel)
+        setCurrentSignModel(chosenModel)
 
         this.setState({modelNames})
       })
 
     listenToSigns(sign => {
       console.log(sign)
+      if(this.props.modalOpen) return
       this.interpretSign(sign)
     })
 
     listenToGestures(gesture => {
       console.log("GESTURE", gesture)
-      if(gesture === 'swipe_left') {
-        this.backSpace()
-      } else if (gesture === 'swipe_right') {
-        this.addSignToMessage(this.state.symbolToConfirm)
-      } else if (gesture === 'circle') {
-        this.messageEvent()
+      if(this.props.modalOpen) {
+        modalGestures(gesture)
+      } else {
+        this.handleGestures(gesture)
       }
+    })
+
+    listenForTranscript(transcript => {
+      console.log(transcript)
+      this.setState({transcript})
     })
   }
 
@@ -84,28 +84,67 @@ class SignView extends Component {
   }
 
   componentWillUnmount() {
-    clearInterval(this.interval)
     document.removeEventListener("keydown", this.handleKeyDown, false);
   }
 
   componentWillReceiveProps(nextProps) {
     const {chosenModel} = nextProps
     if(this.props.chosenModel !== chosenModel) {
-      this.handleModelChange(chosenModel)
+      setCurrentSignModel(chosenModel)
+    }
+  }
+
+  interpretSign(symbol){
+    if(this.state.confirmingSign) return
+
+    const updatedStreamOfSigns = this.state.signs.concat(symbol)
+    const signThresholdNum = 10
+    const lastXOfStream = _.takeRight(updatedStreamOfSigns, signThresholdNum)
+
+    const thresholdConfirmed = this.areArrayLastXElemsSame(lastXOfStream, signThresholdNum)
+
+    //const shouldSend = _.isEqual(symbol, ACTIONS.SEND)
+    //const shouldBackspace = _.isEqual(symbol, 'no')
+
+    if(thresholdConfirmed) {
+      this.addSignToBeConfirmed(symbol)
+    } else {
+      this.updateSymbolStrength(lastXOfStream, symbol, signThresholdNum)
+    }
+  }
+
+  handleGestures(gesture) {
+    if(gesture === 'swipe_left') {
+      this.backSpace()
+    } else if (gesture === 'swipe_right') {
+      this.addSignToMessage(this.state.symbolToConfirm)
+    } else if (gesture === 'circle') {
+      this.messageEvent()
     }
   }
 
   handleKeyDown(event) {
+    if(this.props.modalOpen) return
+
     const {keyCode} = event
-    if (keyCode === 32) { this.toggleMode() }
-    else if (keyCode === 27) { toggleModal(true) }
+    if (keyCode === 32) { this.setMode(!this.state.mode) }
+    else if (keyCode === 27) { this.openModal() }
     //else if (keyCode === 13) { this.messageEvent() }
     else if (keyCode === 38) { this.backSpace() }
     else if (keyCode === 40) { this.addSignToMessage(this.state.symbolToConfirm) }
   }
 
-  handleModelChange = (chosenModel) => {
-    setCurrentSignModel(chosenModel)
+  setMode(modeOn) {
+    this.setState({ mode: modeOn },
+      () => this.state.mode ?
+        startSignReading()
+        : stopSignReading()
+    )
+  }
+
+  openModal() {
+    this.setMode(true)
+    toggleModal(true)
   }
 
   messageEvent() {
@@ -118,11 +157,9 @@ class SignView extends Component {
   }
 
   sendMessage(msg) {
-    const { selectedRoomOption } = this.state
-    const { label } = selectedRoomOption
-
-    const message = `${label}, ${msg}?`
-    newMessage({ roomId: label, message })
+    const roomId = 'Alexa'
+    const message = `${roomId}, ${msg}?`
+    newMessage({ roomId, message })
 
     this.setState({
       signs: [],
@@ -142,8 +179,7 @@ class SignView extends Component {
     return _.isEqual(amountOfSameSymbols, num)
   }
 
-  addSignToConfirm(symbol) {
-    const {symbolToConfirm} = this.state
+  addSignToBeConfirmed(symbol) {
     this.setState({
       symbolToConfirm: symbol,
       confirmingSign: true
@@ -171,17 +207,9 @@ class SignView extends Component {
     const howManySameSymbolsInTheEnd = _.groupBy(symbols)[symbol].length
 
     this.setState({
-      signs: signs.concat(symbol),
+      signs: _.take(signs.concat(symbol), 20),
       currentSymbol: symbol,
       currentSymbolStrength: howManySameSymbolsInTheEnd / threshold
-    })
-  }
-
-  deleteMessage(){
-    this.setState({
-      signs: [],
-      currentMessage: [],
-      currentSymbol: ''
     })
   }
 
@@ -195,31 +223,12 @@ class SignView extends Component {
     })
   }
 
-  interpretSign(symbol){
-    if(this.state.confirmingSign) return
-
-    const updatedStreamOfSigns = this.state.signs.concat(symbol)
-    const signThresholdNum = 10
-    const lastXOfStream = _.takeRight(updatedStreamOfSigns, signThresholdNum)
-
-    const thresholdConfirmed = this.areArrayLastXElemsSame(lastXOfStream, signThresholdNum)
-
-    //const shouldSend = _.isEqual(symbol, ACTIONS.SEND)
-    //const shouldBackspace = _.isEqual(symbol, 'no')
-
-    if(thresholdConfirmed) {
-      this.addSignToConfirm(symbol)
-    } else {
-      this.updateSymbolStrength(lastXOfStream, symbol, signThresholdNum)
-    }
-  }
-
-  toggleMode() {
-    this.setState({ mode: !this.state.mode },
-      () => this.state.mode ?
-        startSignReading()
-        : stopSignReading()
-    )
+  deleteMessage(){
+    this.setState({
+      signs: [],
+      currentMessage: [],
+      currentSymbol: ''
+    })
   }
 
   render() {
@@ -229,7 +238,8 @@ class SignView extends Component {
       currentSymbol,
       currentSymbolStrength,
       symbolToConfirm,
-      confirmingSign
+      confirmingSign,
+      transcript
     } = this.state
 
     const symbolStrength = _.isUndefined(currentSymbolStrength) ? 0 : currentSymbolStrength
@@ -244,16 +254,24 @@ class SignView extends Component {
 
     return (
       <React.Fragment>
-        <div className="sign-view-container">
-          <div className="row justify-content-md-center">
-            <div className="col-md-12">
-              <div style={{ width: '100%' }}>
-                <h3>
-                  <button type="button" className={`btn ${modelButtonStyle}`}>{this.props.chosenModel}</button> {sentence} <span style={phraseStyle}>{confirmingSign ? symbolToConfirm : currentSymbol}</span>
-                </h3>
-              </div>
-            </div>
+        <div className="SignView">
+
+          <div className="Model">
+              <button type="button"
+                      onClick={() => this.setMode(!mode)}
+                      className={`btn ${modelButtonStyle} modelButton`}>{this.props.chosenModel}</button>
           </div>
+
+          <div className="Sentence">
+              <h3>{sentence} <span style={phraseStyle}>{confirmingSign ? symbolToConfirm : currentSymbol}</span>
+              </h3>
+          </div>
+
+          <div className="Transcript">
+              <h5>Transcript:</h5>
+              <h3>{transcript}</h3>
+          </div>
+
         </div>
       </React.Fragment>
     )

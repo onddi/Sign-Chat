@@ -2,7 +2,54 @@
   display: flex;
   justify-content: center;
   align-items: center;
+  flex-direction: column;
   position: absolute;
   width: 100%;
   height: 100%;
+  padding: 0 40px;
+}
+
+.modelButton {
+  font-size: 3rem;
+}
+
+.SignView {
+  text-align: center;
+  display: grid;
+  grid-gap: 10px;
+  grid-template-rows: 1fr 2fr 2fr;
+
+  height: calc(100vh - 60px);
+
+  grid-template-areas:
+    "model"
+    "sentence"
+    "transcript";
+
+  justify-items: start;
+}
+
+.Model {
+  grid-column: 1;
+  grid-row: 1;
+  grid-area: model;
+  align-self: center;
+  justify-self: stretch;
+}
+
+.Sentence {
+  grid-column: 2 / 2;
+  grid-row: 2;
+  grid-area: sentence;
+  align-self: center;
+  justify-self: stretch;
+  padding-right: 10px;
+}
+
+.Transcript {
+  grid-column: 2 / 2;
+  grid-row: 3;
+  grid-area: transcript;
+  align-self: center;
+  justify-self: stretch;
 }
