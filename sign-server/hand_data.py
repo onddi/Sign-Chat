@@ -8,6 +8,15 @@ ACTION_GESTURE_LEFT = "swipe_left"
 ACTION_GESTURE_RIGHT = "swipe_right"
 ACTION_GESTURE_CIRCLE = "circle"
 
+
+
+
+def get_hand_and_gesture(controller):
+    hand_pos, frame = get_hand_position(controller)
+    gesture = get_current_gesture(frame)
+
+    return hand_pos, gesture
+
 '''
 gets the current frame from controller
 for each finger, stores the topmost end of each bone (4 points)
@@ -18,10 +27,9 @@ returns the adjusted bone locations in the form:
 def get_hand_position(controller, blocking=False):
     frame = controller.frame()
 
-    detected_gesture = get_current_gesture(frame)
 
     if not blocking and len(frame.fingers) == 0:
-        return None, None
+        return None, frame
 
     while len(frame.fingers) == 0:
         frame = controller.frame()
@@ -46,13 +54,27 @@ def get_hand_position(controller, blocking=False):
         for j in range(3):
             calibrated_finger_bones["feat" + str(i*3+j)] = normalized_joint[j]
 
-    return calibrated_finger_bones, detected_gesture
+    return calibrated_finger_bones, frame
 
 def get_current_gesture(frame):
     for gesture in frame.gestures():
         if gesture:
             print(gesture.type)
             if gesture.type is Leap.Gesture.TYPE_CIRCLE:
+                # print("*CIRCLE*")
+
+                # if(gesture.state==Leap.Gesture.STATE_STOP):
+                #     print("***STOPPED****")
+                #
+                # elif(gesture.state==Leap.Gesture.STATE_UPDATE):
+                #     print("*** UPDATING ****")
+                #
+                # else:
+                #
+                #     print("***    MOOOOOOVIIIING ****")
+                circle = Leap.CircleGesture(gesture)
+                print(circle.progress)
+
                 return ACTION_GESTURE_CIRCLE
             if gesture.type is Leap.Gesture.TYPE_SWIPE:
                 swipe = Leap.SwipeGesture(gesture)

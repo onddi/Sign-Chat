@@ -1,6 +1,6 @@
 from classifier import getModel, trainModel, get_path
 from flask import Flask, render_template, jsonify, request, json
-from hand_data import get_hand_position
+from hand_data import get_hand_position, get_hand_and_gesture
 from lib import Leap
 from db import get_all_models, get_model_signs, delete_sign
 import pickle
@@ -22,6 +22,8 @@ controller.enable_gesture(Leap.Gesture.TYPE_CIRCLE)
 controller.enable_gesture(Leap.Gesture.TYPE_SWIPE)
 controller.enable_gesture(Leap.Gesture.TYPE_KEY_TAP)
 controller.enable_gesture(Leap.Gesture.TYPE_SCREEN_TAP)
+
+
 
 past_symbol = 'a'
 prev_prediction = None
@@ -126,6 +128,7 @@ def start_sign_reading():
 
 @socketio.on('stop_sign_reading')
 def stop_sign_reading():
+    print("STOP SIGN READING")
     global read_sign
     read_sign = False
 
@@ -137,7 +140,8 @@ def read_leap():
         if gesture:
             print(gesture)
             socketio.emit(ACTION_GESTURE, gesture)
-        if sign:
+        elif sign:
+            # pass
             print(sign)
             socketio.emit(ACTION_SIGN, sign)
         time.sleep(.1)
@@ -164,7 +168,7 @@ def current_symbol():
     global prev_prediction
     global currentModel
     # Is there a hand?
-    hand_pos, gesture = get_hand_position(controller)
+    hand_pos, gesture = get_hand_and_gesture(controller)
     if not hand_pos:
         new = past_symbol != ' '
         past_symbol = ' '
@@ -180,7 +184,7 @@ def current_symbol():
 
     # Do we have a new symbol?
     prediction = ''.join(currentModel.predict(features))
-    print("Predicted hand symbol", prediction)
+    # print("Predicted hand symbol", prediction)
     #print("Probability", currentModel.predict_proba(features))
     return prediction, gesture
 
@@ -199,6 +203,10 @@ def scoreboard():
 def test_connect():
     print("CONNECTED")
     emit('sign_event', {'data': 'Connected'})
+
+@socketio.on('disconnect')
+def disconnect():
+    print('Client disconnected')
 
 
 @socketio.on('train_sign')
