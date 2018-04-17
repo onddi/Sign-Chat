@@ -183,7 +183,12 @@ def current_symbol():
         return None, gesture
 
     # Do we have a new symbol?
-    prediction = ''.join(currentModel.predict(features))
+    prediction_propabilities = currentModel.predict_proba(features)
+    max_prob = numpy.max(prediction_propabilities)
+    max_idx = numpy.argmax(prediction_propabilities)
+    best_prediction = currentModel.classes_[max_idx]
+
+    prediction = ''.join(best_prediction) if max_prob > 0.95 else ''
     # print("Predicted hand symbol", prediction)
     #print("Probability", currentModel.predict_proba(features))
     return prediction, gesture
