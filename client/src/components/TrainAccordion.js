@@ -41,9 +41,7 @@ class TrainAccordion extends Component {
     const selectedOption = selectedSignOption ? selectedSignOption : emptyOption
     const {value} = selectedOption
 
-    if(value !== '') {
-      this.props.setSign(value)
-    }
+    this.props.setSign(value)
 
     this.setState({
       selectedSignOption: selectedOption,
@@ -62,6 +60,8 @@ class TrainAccordion extends Component {
 
   signInputChange(e) {
     const {value} = e.target
+
+    this.props.setSign('')
 
     this.setState({
       signInput: value,
