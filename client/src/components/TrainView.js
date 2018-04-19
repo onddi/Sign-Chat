@@ -1,5 +1,4 @@
 import React, { Component } from 'react';
-import axios from 'axios'
 import _ from 'lodash'
 
 import TrainAccordion from './TrainAccordion'
@@ -13,9 +12,6 @@ import {
   getSignModels,
   getModelSigns
 } from '../api/sign'
-
-import Select from 'react-select';
-import 'react-select/dist/react-select.css';
 
 class TrainView extends Component {
 
@@ -74,11 +70,7 @@ class TrainView extends Component {
     const currentProgress = _.split(progress, "/")
     const valueNow = _.parseInt(_.first(currentProgress))
     const valueMax = _.parseInt(_.last(currentProgress))
-
     const percentage = _.toString((valueNow / valueMax) * 100)
-
-    console.log(currentProgress)
-    console.log(percentage)
 
     this.setState({progressValue: percentage})
 

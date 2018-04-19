@@ -1,6 +1,5 @@
 import React, { Component } from 'react';
-import { createRoom, joinRoom, joinableRooms, leaveRoom } from '../api/chat'
-import { testAction, listRooms } from '../megablob/actions'
+import { createRoom } from '../api/chat'
 
 class RoomsList extends Component {
   constructor(props) {

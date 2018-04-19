@@ -1,9 +1,8 @@
 import React, { Component } from 'react';
-import {createRoom, listenForMessages, newMessage, joinRoom, joinableRooms, leaveRoom, getJoinableRooms} from '../api/chat'
+import {joinRoom, leaveRoom} from '../api/chat'
 import '../styles/Chat.css';
-import {testAction, listRooms} from '../megablob/actions'
 
-import RoomsList from './RoomsList'
+//import RoomsList from './RoomsList'
 import Room from './Room'
 
 class Chat extends Component {
@@ -31,9 +30,11 @@ class Chat extends Component {
 
   render() {
     const {selectedRoom} = this.state
-    const {rooms} = this.props
 
-    //<RoomsList rooms={rooms} changeRoom={this.changeRoom} selectedRoom={selectedRoom}/>
+    /*
+    const {rooms} = this.props
+    <RoomsList rooms={rooms} changeRoom={this.changeRoom} selectedRoom={selectedRoom}/>
+    */
 
     return (
       <div className="Chat">

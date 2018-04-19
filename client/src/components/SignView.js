@@ -1,5 +1,4 @@
 import React, { Component } from 'react';
-import Leap from 'leapjs'
 import _ from 'lodash'
 import { toggleModal, signModels, chooseModel, modalGestures } from '../megablob/actions'
 import { newMessage, listenForTranscript } from '../api/chat'
@@ -203,7 +202,7 @@ class SignView extends Component {
   }
 
   updateSymbolStrength(symbols, symbol, threshold) {
-    const { currentMessage, signs } = this.state
+    const { signs } = this.state
     const howManySameSymbolsInTheEnd = _.groupBy(symbols)[symbol].length
 
     this.setState({

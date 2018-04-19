@@ -1,11 +1,7 @@
 import React, { Component } from 'react';
 import {
-  createRoom,
   listenForMessages,
   newMessage,
-  joinRoom,
-  joinableRooms,
-  leaveRoom,
   sendTranscript
 } from '../api/chat'
 
