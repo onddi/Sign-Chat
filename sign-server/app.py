@@ -123,7 +123,7 @@ def get_signs(model_name):
 
 @socketio.on('start_sign_reading')
 def start_sign_reading():
-    print("STOP SIGN READING")
+    print("START SIGN READING")
     global read_sign
     read_sign = True
     read_leap()
@@ -146,7 +146,7 @@ def read_leap():
                 socketio.emit(ACTION_GESTURE, gesture)
         elif sign:
             # pass
-            print(sign)
+            print("sign to send: " + sign)
             socketio.emit(ACTION_SIGN, sign)
         time.sleep(.1)
 
@@ -176,6 +176,7 @@ def current_symbol():
     if not hand_pos:
         new = past_symbol != ' '
         past_symbol = ' '
+        # print("no hand pos")
         return None, gesture
     features = [v for k, v in hand_pos.iteritems()]
 
@@ -184,6 +185,7 @@ def current_symbol():
         currentModel = getModel('clf')
 
     if currentModel == 'ERROR':
+        print("model error")
         return None, gesture
 
     # Do we have a new symbol?
@@ -216,6 +218,7 @@ def test_connect():
 @socketio.on('disconnect')
 def disconnect():
     print('Client disconnected')
+    stop_sign_reading()
 
 
 @socketio.on('train_sign')

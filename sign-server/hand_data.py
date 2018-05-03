@@ -7,6 +7,7 @@ from lib.Leap import Bone
 ACTION_GESTURE_LEFT = "swipe_left"
 ACTION_GESTURE_RIGHT = "swipe_right"
 ACTION_GESTURE_CIRCLE = "circle"
+ACTION_GESTURE_CIRCLE_CLOCKWISE = "circle_clockwise"
 GESTURE_BLOCKING = "block"
 
 
@@ -61,7 +62,7 @@ previous_progress = 0
 def get_current_gesture(frame):
     for gesture in frame.gestures():
         if gesture:
-            print(gesture.id)
+            print("id " + str(gesture.id))
             if(gesture.state==Leap.Gesture.STATE_STOP):
                 print("***STOPPED****")
 
@@ -83,6 +84,8 @@ def get_current_gesture(frame):
 
                     if(circle.progress == previous_progress):
                         previous_progress = 0
+                        if (circle.pointable.direction.angle_to(circle.normal) <= Leap.PI/2):
+                            return ACTION_GESTURE_CIRCLE_CLOCKWISE
                         return ACTION_GESTURE_CIRCLE
                     previous_progress = circle.progress
 
@@ -95,6 +98,7 @@ def get_current_gesture(frame):
                 if (swipe.direction.x > 0):
                     return ACTION_GESTURE_RIGHT
                 return ACTION_GESTURE_LEFT
+        print("BLOCK")
         return GESTURE_BLOCKING
 
     return None

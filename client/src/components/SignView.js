@@ -119,7 +119,10 @@ class SignView extends Component {
       this.addSignToMessage(this.state.symbolToConfirm)
     } else if (gesture === 'circle') {
       this.messageEvent()
+    } else if (gesture === 'circle_clockwise') {
+      this.openModal()
     }
+
   }
 
   handleKeyDown(event) {
